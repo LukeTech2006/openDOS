@@ -1,6 +1,5 @@
 -- command.lua, a very basic command interpreter for miniOS
---are we in miniOS?
-if not miniOS then error("This program requires miniOS!", 0) end
+if not ntkrnl then error("This program can only run in DOS Mode!", 0) end
 
 local shell = {}
 
@@ -162,15 +161,18 @@ local function twoFileCommandHelper(run, parts)
 end
 
 local function runline(line)
+	
 	checkArg(1, line, "string", "nil")
 	--print(line)
 	line = text.trim(line)
 	if line == "" then return true end
 	parts = text.tokenize(line)
 	command = string.lower(text.trim(parts[1]))
+
 	--blank commands
 	if command == "" then return true end
 	if command == nil then return true end
+
 	--drive selector
 	if #command == 2 then if string.sub(command, 2, 2) == ":" then filesystem.drive.setcurrent(string.sub(command, 1, 1)) return true end end
 
@@ -182,7 +184,6 @@ local function runline(line)
 	if command == "dir" then if parts[2] then dir(fixPath(parts[2])) else dir() end return true end
 	if command == "intro" then intro() return true end
 	if command == "disks" then listdrives() return true end
-	if command == "discs" then listdrives() return true end
 	if command == "drives" then listdrives() return true end
 	if command == "labels" then labels() return true end
 	if command == "scndrv" then filesystem.drive.scan() return true end

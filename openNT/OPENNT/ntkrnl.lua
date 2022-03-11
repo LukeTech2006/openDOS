@@ -5,119 +5,119 @@ _G._OSCREDIT = "A NT-Emulator OS, based off of miniOS classic by Skye, based off
 
 --component code
 function component_code()
-local adding = {}
-local removing = {}
-local primaries = {}
+  local adding = {}
+  local removing = {}
+  local primaries = {}
 
--------------------------------------------------------------------------------
+  -------------------------------------------------------------------------------
 
--- This allows writing component.modem.open(123) instead of writing
--- component.getPrimary("modem").open(123), which may be nicer to read.
-setmetatable(component, { __index = function(_, key)
-                                      return component.getPrimary(key)
-                                    end})
+  -- This allows writing component.modem.open(123) instead of writing
+  -- component.getPrimary("modem").open(123), which may be nicer to read.
+  setmetatable(component, { __index = function(_, key)
+    return component.getPrimary(key)
+  end})
 
-function component.get(address, componentType)
-  checkArg(1, address, "string")
-  checkArg(2, componentType, "string", "nil")
-  for c in component.list(componentType, true) do
-    if c:sub(1, address:len()) == address then
-      return c
+  function component.get(address, componentType)
+    checkArg(1, address, "string")
+    checkArg(2, componentType, "string", "nil")
+    for c in component.list(componentType, true) do
+      if c:sub(1, address:len()) == address then
+        return c
+      end
+    end
+    return nil, "no such component"
+  end
+
+  function component.isAvailable(componentType)
+    checkArg(1, componentType, "string")
+    if not primaries[componentType] then
+      -- This is mostly to avoid out of memory errors preventing proxy
+      -- creation cause confusion by trying to create the proxy again,
+      -- causing the oom error to be thrown again.
+      component.setPrimary(componentType, component.list(componentType, true)())
+    end
+    return primaries[componentType] ~= nil
+  end
+
+  function component.isPrimary(address)
+    local componentType = component.type(address)
+    if componentType then
+      if component.isAvailable(componentType) then
+        return primaries[componentType].address == address
+      end
+    end
+    return false
+  end
+
+  function component.getPrimary(componentType)
+    checkArg(1, componentType, "string")
+    assert(component.isAvailable(componentType),
+      "no primary '" .. componentType .. "' available")
+    return primaries[componentType]
+  end
+
+  function component.setPrimary(componentType, address)
+    checkArg(1, componentType, "string")
+    checkArg(2, address, "string", "nil")
+    if address ~= nil then
+      address = component.get(address, componentType)
+      assert(address, "no such component")
+    end
+
+    local wasAvailable = primaries[componentType]
+    if wasAvailable and address == wasAvailable.address then
+      return
+    end
+    local wasAdding = adding[componentType]
+    if wasAdding and address == wasAdding.address then
+      return
+    end
+    if wasAdding then
+      event.cancel(wasAdding.timer)
+    end
+    primaries[componentType] = nil
+    adding[componentType] = nil
+
+    local primary = address and component.proxy(address) or nil
+    if wasAvailable then
+      computer.pushSignal("component_unavailable", componentType)
+    end
+    if primary then
+      if wasAvailable or wasAdding then
+        adding[componentType] = {
+          address=address,
+          timer=event.timer(0.1, function()
+            adding[componentType] = nil
+            primaries[componentType] = primary
+            computer.pushSignal("component_available", componentType)
+          end)
+        }
+      else
+        primaries[componentType] = primary
+        computer.pushSignal("component_available", componentType)
+      end
     end
   end
-  return nil, "no such component"
-end
 
-function component.isAvailable(componentType)
-  checkArg(1, componentType, "string")
-  if not primaries[componentType] then
-    -- This is mostly to avoid out of memory errors preventing proxy
-    -- creation cause confusion by trying to create the proxy again,
-    -- causing the oom error to be thrown again.
-    component.setPrimary(componentType, component.list(componentType, true)())
-  end
-  return primaries[componentType] ~= nil
-end
-
-function component.isPrimary(address)
-  local componentType = component.type(address)
-  if componentType then
-    if component.isAvailable(componentType) then
-      return primaries[componentType].address == address
+  local function onComponentAdded(_, address, componentType)
+    if not (primaries[componentType] or adding[componentType]) then
+      component.setPrimary(componentType, address)
     end
   end
-  return false
-end
 
-function component.getPrimary(componentType)
-  checkArg(1, componentType, "string")
-  assert(component.isAvailable(componentType),
-    "no primary '" .. componentType .. "' available")
-  return primaries[componentType]
-end
-
-function component.setPrimary(componentType, address)
-  checkArg(1, componentType, "string")
-  checkArg(2, address, "string", "nil")
-  if address ~= nil then
-    address = component.get(address, componentType)
-    assert(address, "no such component")
-  end
-
-  local wasAvailable = primaries[componentType]
-  if wasAvailable and address == wasAvailable.address then
-    return
-  end
-  local wasAdding = adding[componentType]
-  if wasAdding and address == wasAdding.address then
-    return
-  end
-  if wasAdding then
-    event.cancel(wasAdding.timer)
-  end
-  primaries[componentType] = nil
-  adding[componentType] = nil
-
-  local primary = address and component.proxy(address) or nil
-  if wasAvailable then
-    computer.pushSignal("component_unavailable", componentType)
-  end
-  if primary then
-    if wasAvailable or wasAdding then
-      adding[componentType] = {
-        address=address,
-        timer=event.timer(0.1, function()
-          adding[componentType] = nil
-          primaries[componentType] = primary
-          computer.pushSignal("component_available", componentType)
-        end)
-      }
-    else
-      primaries[componentType] = primary
-      computer.pushSignal("component_available", componentType)
+  local function onComponentRemoved(_, address, componentType)
+    if primaries[componentType] and primaries[componentType].address == address or
+      adding[componentType] and adding[componentType].address == address
+    then
+      component.setPrimary(componentType, component.list(componentType, true)())
     end
   end
+
+  event.listen("component_added", onComponentAdded)
+  event.listen("component_removed", onComponentRemoved)
+
 end
 
--------------------------------------------------------------------------------
-
-local function onComponentAdded(_, address, componentType)
-  if not (primaries[componentType] or adding[componentType]) then
-    component.setPrimary(componentType, address)
-  end
-end
-
-local function onComponentRemoved(_, address, componentType)
-  if primaries[componentType] and primaries[componentType].address == address or
-     adding[componentType] and adding[componentType].address == address
-  then
-    component.setPrimary(componentType, component.list(componentType, true)())
-  end
-end
-
-event.listen("component_added", onComponentAdded)
-event.listen("component_removed", onComponentRemoved)
-end
 --text libary
 function text_code()
   local text = {}
@@ -235,6 +235,7 @@ function text_code()
   
   return text
 end
+
 --event code
 function event_code()
   local event, listeners, timers = {}, {}, {}
@@ -424,6 +425,7 @@ function event_code()
   
   return event
 end
+
 --filesystem code
 function fs_code()
   local fs = {}
@@ -663,6 +665,7 @@ function fs_code()
   --return the API
   return fs
 end
+
 --terminal code
 function terminal_code()
   local term = {}
@@ -1242,15 +1245,18 @@ local function printProcess(...)
   end
   return argstr
 end
+
 function print(...)
   term.write(printProcess(...) .. "\n", true)
 end
+
 function printErr(...)
 		local c = component.gpu.getForeground()
 		component.gpu.setForeground(0xFF0000)
 		print(...)
 		component.gpu.setForeground(c)
 end
+
 function printPaged(...)
   argstr = printProcess(...) .. "\n"
   local i = 0
@@ -1309,6 +1315,7 @@ function printPaged(...)
     end
   end
 end
+
 --load programs
 function loadfile(file, mode, env)
   local handle, reason = filesystem.open(file)
@@ -1376,20 +1383,21 @@ if term.isAvailable() then
 end
 
 print("Starting " .. _OSNAME .. "...\n")
-print(_OSCREDIT .. "\n")
+--print(_OSCREDIT .. "\n")
 
 --clean up libs
 event_code, component_code, text_code, fs_code, terminal_code, keyboard_code = nil, nil, nil, nil, nil, nil
-
 filesystem.drive.scan()
 
-miniOS = {}
+ntkrnl = {} --set up identifier for os (will contain more info later on)
+
 local function interrupt(data)
   --print("INTERRUPT!")
-  if data[2] == "RUN" then return miniOS.runfile(data[3], table.unpack(data[4])) end
+  if data[2] == "RUN" then return ntkrnl.runfile(data[3], table.unpack(data[4])) end
   if data[2] == "ERR" then error("This error is for testing!") end
   if data[2] == "EXIT" then return data[3] end
 end
+
 local function runfile(file, ...)
   local program, reason = loadfile(file)
   if program then
@@ -1436,11 +1444,13 @@ local function runfile(file, ...)
     error(reason, 3)
   end
 end
+
 local function kernelError()
   printErr("\nPress any key to try again.")
   term.readKey()
 end
-function miniOS.saferunfile(...)
+
+function ntkrnl.saferunfile(...)
   local r = {pcall(runfile, ...)}
   if not r[1] then
 	local c = component.gpu.getForeground()
@@ -1450,8 +1460,9 @@ function miniOS.saferunfile(...)
   end
   return r
 end
-function miniOS.runfile(...)
- local r = miniOS.saferunfile(...)
+
+function ntkrnl.runfile(...)
+ local r = ntkrnl.saferunfile(...)
  return table.unpack(r, 2, r.n)
 end
 
@@ -1460,16 +1471,18 @@ local function tryrunlib(lib)
 	local opt = {lib .. ".lua", lib}
 	for _,o in ipairs(opt) do
 		if fs.exists(o) then
-			return miniOS.runfile(o)
+			return ntkrnl.runfile(o)
 		end
 	end
 	error("Can't find the library specified: `" .. lib .. "`", 3)
 end
+
 function require(lib)
 	return _G[lib] or _G[string.lower(lib)] or tryrunlib(lib)
 end
+
 local function shellrun(...)
-	local success = miniOS.saferunfile(...)[1]
+	local success = ntkrnl.saferunfile(...)[1]
   if not success then
     printErr("\n\nError in running command interpreter.")
 		return false
@@ -1477,14 +1490,14 @@ local function shellrun(...)
 	return true
 end
 
-miniOS.freeMem = computer.freeMemory()
+ntkrnl.freeMem = computer.freeMemory()
 
 --start command and keep it running.
 local fallback_drive = fs.drive.getcurrent()
 if filesystem.exists("autoexec.bat") then shellrun("command.lua", "-c", "autoexec.bat") else shellrun("command.lua") end
 while true do
-  miniOS.freeMem = computer.freeMemory()
-	if not miniOS.cmdBat then print() end
+  ntkrnl.freeMem = computer.freeMemory()
+	if not ntkrnl.cmdBat then print() end
   fs.drive.setcurrent(fallback_drive)
   local new = false;
   if not shellrun("command.lua", (not new and "-c") or nil) then new = true; printErr("Will restart command interpreter..."); kernelError(); end
