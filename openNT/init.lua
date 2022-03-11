@@ -12,4 +12,4 @@ local function loadfile(name)
   return load(buffer, "=" .. name, 'bt', _G)
 end
 -- Tail call!
-return loadfile("miniOS.lua")()
+return loadfile("OPENNT/ntkrnl.lua")()
