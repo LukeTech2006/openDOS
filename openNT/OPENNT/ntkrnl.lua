@@ -514,7 +514,7 @@ function fs_code()
     else
       path = mixed
     end
-	return drive, path
+	  return drive, path
   end
   function fs.drive.getcurrent() return fs.drive._current end
   function fs.drive.scan()
@@ -556,13 +556,14 @@ function fs_code()
   function fs.open(file, mode)
     local drive, handle, proxy
     drive, path = fs.drive.drivepathSplit(file)
-	proxy = fs.drive.letterToProxy(drive)
+	  proxy = fs.drive.letterToProxy(drive)
     handle, reason = proxy.open(path, mode or 'r')
-	if not handle then return nil, reason end
+	  if not handle then return nil, reason end
     return setmetatable({_handle = handle, _proxy = proxy}, {__index = fs})
   end
   function fs.write(handle, data) return handle._proxy.write(handle._handle, data) end
   function fs.read(handle, length) return handle._proxy.read(handle._handle, length or math.huge) end
+  function fs.seek(handle, whence, offset) return handle._proxy.seek(handle._handle, whence, offset) end
   function fs.close(handle) return handle._proxy.close(handle._handle) end
   function fs.isDirectory(path)
     local drive
@@ -1380,13 +1381,20 @@ if term.isAvailable() then
   term.clear()
 end
 
-print("Starting ".._OSNAME.." ".._OSVER.."...\n")
+local function memtest()
+  print("Running Memtest...")
+  print(math.floor(computer.totalMemory() / 1024 * 10 + 0.5) /10 .. "KiB RAM present\n" .. math.floor(computer.freeMemory() / 1024 * 10 + 0.5) / 10 .. "KiB RAM available\n")
+end
+
+print("Starting ".._OSNAME.."...\n")
 
 --clean up libs
 event_code, component_code, text_code, fs_code, terminal_code, keyboard_code = nil, nil, nil, nil, nil, nil
 filesystem.drive.scan()
 
 ntkrnl = {} --set up identifier for os (will contain more info later on)
+
+memtest()
 
 local function interrupt(data)
   --print("INTERRUPT!")

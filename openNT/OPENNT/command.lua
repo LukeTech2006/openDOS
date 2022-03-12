@@ -7,16 +7,23 @@ local continue
 if tArgs[1] == "-c" then continue = true table.remove(tArgs, 1)
 else ntkrnl.cmdBat = nil end
 
-local function intro() print(_OSVERSION .. " [".. math.floor(computer.totalMemory()/1024).."k RAM, around "..math.floor(ntkrnl.freeMem/1024).."k Free]" .."\nCommand Interpreter By Skye M.\n") end 
+local function intro()
+	print("openNT(R) Default Command Interpreter\n             (C)Copyright Lukas Kretschmar - 2022")
+end
+
 if not continue then intro() end
+
+local function memtest()
+	print("Running Memtest...")
+	print(math.floor(computer.totalMemory() / 1024 * 10 + 0.5) /10 .. "KiB RAM present\n" .. math.floor(computer.freeMemory() / 1024 * 10 + 0.5) / 10 .. "KiB RAM available\n")
+end
 
 local history = {}
 if ntkrnl.cmdHistory then history = ntkrnl.cmdHistory end
 if ntkrnl.cmdDrive then fs.drive.setcurrent(ntkrnl.cmdDrive) end
 
-function round(num, numDecimalPlaces)
-	local mult = 10^(numDecimalPlaces or 0)
-	return math.floor(num * mult + 0.5) / mult
+function round(num)
+	return math.floor(num + 0.5)
 end
 
 local function fixPath(path)
@@ -97,37 +104,37 @@ local function outputFile(file, paged)
 end
 
 local function dir(folder)
-	local function getDirInsert(file)
-		if filesystem.isDirectory(file) then return "<DIR> " else
-			tempfile = fs.open(file)
-			tempsize = #tostring(tempfile:read())
-			if tempsize < 1024 then
-				return(tempsize .. "B ")
-			  end
-			  if tempsize > 1024 and tempsize < 1048576 then
-				return(round(tempsize / 1024, 2) .. "KiB ")
-			  end
-			  if tempsize > 1048576 and tempsize < 1073741824 then
-				return(round(tempsize / 1048576, 2) .. "MiB ")
-			  end
+	local function getDirInsert(file, folder)
+		local size_disp
+		if folder == nil then folder = fs.drive.getcurrent() end
+		filepath = folder.."/"..file
+		if filesystem.isDirectory(filepath) then size_disp = "<DIR>" else
+			local tempfile = fs.open(filepath)
+			local tempsize = tempfile:seek("end", 0)
+			if tempsize < 1024 then size_disp = tempsize .. " B" end
+			if tempsize > 1024 and tempsize < 1048576 then size_disp = (round(tempsize / 1024 * 10) / 10) .. " KiB" end
+			if tempsize > 1048576 and tempsize < 1073741824 then size_disp = (round(tempsize / 1048576 * 10) / 10) .. " MiB" end
 		end
+		for i = 0, 10 - #size_disp, 1 do
+			size_disp = size_disp.." "
+		end return size_disp.."| "
 	end
 	--we will have to get the current dir later (we will need fs.resolve!)
 	folder = (folder or "")
 	--is it a directory?
-	if not fs.isDirectory(folder) then print("No such folder.") return end
+	if not fs.isDirectory(folder, folder) then print("No such folder.") return end
 	--if it is we start...
 	local output = ""
 	--put the list of files into a massive string
-	for file in filesystem.list(folder) do 
-		output = output .. getDirInsert(file) .. file .. "\n"
+	for file in filesystem.list(folder) do
+		output = output .. "|" .. getDirInsert(file, folder) .. file .. "\n"
 	end
 	--get rid of the last newline
-	output = output:sub(0, -2)
+	--output = output:sub(0, -2)
 	--get rid of folder postfixes
 	output = output:gsub("/", "")
 	--we want the output to be paged
-	printPaged(output)
+	printPaged("+-----------+----------------\n|Size       | File Name\n+-----------+----------------\n|<DIR>      | .\n|<DIR>      | ..\n"..output.."+-----------+----------------")
 end
 
 local function moveFile(from, to, force)
@@ -203,7 +210,7 @@ local function runline(line)
 	if command == "exit" then history = {} return "exit" end
 	if command == "cls" then term.clear(); term.gpu().setForeground(0xFFFFFF); term.gpu().setBackground(0x000000) return true end
 	if command == "ver" then print(_OSVERSION) return true end
-	if command == "mem" then print(math.floor(computer.totalMemory()/1024).."k RAM, "..math.floor(computer.freeMemory()/1024).."k Free") return true end
+	if command == "mem" then memtest() return true end
 	if command == "dir" then if parts[2] then dir(fixPath(parts[2])) else dir() end return true end
 	if command == "intro" then intro() return true end
 	if command == "disks" then listdrives() return true end
@@ -222,10 +229,10 @@ local function runline(line)
 	if command == "ren" then return twoFileCommandHelper(moveFile, parts) end
 	if command == "move" then return twoFileCommandHelper(moveFile, parts) end
   	if command == "mkdir" then return filesystem.makeDirectory(fixPath(parts[2])) end
-	if command == "edit" then return runprog("opennt/edit.lua", parts) end
+	if command == "edit" then return runprog("A:/opennt/edit.lua", parts) end
 	if command == "cmds" then printPaged([[
 Internal Commands:
-exit --- Exit the command interpreter, Usually restarts it.
+exit --- Exit the command interpreter.
 cls ---- Clears the screen.
 ver ---- Outputs version information.
 mem ---- Outputs memory information.
@@ -269,7 +276,7 @@ edit --- Opens a simple Text Editor.]]) printPaged() return true end
 		end
 	end
 
-	print("'" .. parts[1] .. "' is not an internal or external command, program or batch file.")
+	print("Bad command or file name")
 	return false
 end
 
@@ -285,7 +292,7 @@ end
 
 if shell.runline(table.concat(tArgs, " ")) == "exit" then return end
 
-local cmds = {"exit", "cls", "ver", "mem", "dir ", "cmds", "intro", "drives", "labels", "echo ", "type ", "more ", "touch", "del ", "copy ", "move ", "ren ", "mkdir "}
+local cmds = {"exit", "cls", "ver", "mem", "dir ", "cmds", "intro", "drives", "labels", "echo ", "type ", "more ", "touch", "del ", "copy ", "move ", "ren ", "mkdir ", "edit "}
 
 while true do
 	if ntkrnl.cmdBat and #ntkrnl.cmdBat == 0 then
