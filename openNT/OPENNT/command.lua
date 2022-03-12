@@ -5,14 +5,19 @@ local shell = {}
 local tArgs={...}
 local continue
 if tArgs[1] == "-c" then continue = true table.remove(tArgs, 1)
-else miniOS.cmdBat = nil end
+else ntkrnl.cmdBat = nil end
 
-local function intro() print(_OSVERSION .. " [".. math.floor(computer.totalMemory()/1024).."k RAM, around "..math.floor(miniOS.freeMem/1024).."k Free]" .."\nCommand Interpreter By Skye M.\n") end 
+local function intro() print(_OSVERSION .. " [".. math.floor(computer.totalMemory()/1024).."k RAM, around "..math.floor(ntkrnl.freeMem/1024).."k Free]" .."\nCommand Interpreter By Skye M.\n") end 
 if not continue then intro() end
 
 local history = {}
-if miniOS.cmdHistory then history = miniOS.cmdHistory end
-if miniOS.cmdDrive then fs.drive.setcurrent(miniOS.cmdDrive) end
+if ntkrnl.cmdHistory then history = ntkrnl.cmdHistory end
+if ntkrnl.cmdDrive then fs.drive.setcurrent(ntkrnl.cmdDrive) end
+
+function round(num, numDecimalPlaces)
+	local mult = 10^(numDecimalPlaces or 0)
+	return math.floor(num * mult + 0.5) / mult
+end
 
 local function fixPath(path)
 	checkArg(1, path, "string")
@@ -21,14 +26,14 @@ local function fixPath(path)
 end
 
 local function runprog(file, parts)
-	miniOS.cmdHistory = history
-	miniOS.cmdDrive = fs.drive.getcurrent()
+	ntkrnl.cmdHistory = history
+	ntkrnl.cmdDrive = fs.drive.getcurrent()
 	table.remove(parts, 1)
 	error({[1]="INTERRUPT", [2]="RUN", [3]=file, [4]=parts})
 end
 
 local function runbat(file, parts)
-	if not miniOS.cmdBat then miniOS.cmdBat = {} end
+	if not ntkrnl.cmdBat then ntkrnl.cmdBat = {} end
 	local lines = {}
 	local line = ""
 	local handle = fs.open(file)
@@ -43,7 +48,7 @@ local function runbat(file, parts)
 	fs.close(handle)
 
 	--for _,l in ipairs(lines) do print(l) end
-	miniOS.cmdBat[#miniOS.cmdBat + 1] = lines
+	ntkrnl.cmdBat[#ntkrnl.cmdBat + 1] = lines
 	os.exit(0)
 end
 
@@ -92,6 +97,21 @@ local function outputFile(file, paged)
 end
 
 local function dir(folder)
+	local function getDirInsert(file)
+		if filesystem.isDirectory(file) then return "<DIR> " else
+			tempfile = fs.open(file)
+			tempsize = #tostring(tempfile:read())
+			if tempsize < 1024 then
+				return(tempsize .. "B ")
+			  end
+			  if tempsize > 1024 and tempsize < 1048576 then
+				return(round(tempsize / 1024, 2) .. "KiB ")
+			  end
+			  if tempsize > 1048576 and tempsize < 1073741824 then
+				return(round(tempsize / 1048576, 2) .. "MiB ")
+			  end
+		end
+	end
 	--we will have to get the current dir later (we will need fs.resolve!)
 	folder = (folder or "")
 	--is it a directory?
@@ -99,9 +119,13 @@ local function dir(folder)
 	--if it is we start...
 	local output = ""
 	--put the list of files into a massive string
-	for file in filesystem.list(folder) do output = output .. file .. "\n" end
+	for file in filesystem.list(folder) do 
+		output = output .. getDirInsert(file) .. file .. "\n"
+	end
 	--get rid of the last newline
 	output = output:sub(0, -2)
+	--get rid of folder postfixes
+	output = output:gsub("/", "")
 	--we want the output to be paged
 	printPaged(output)
 end
@@ -198,6 +222,7 @@ local function runline(line)
 	if command == "ren" then return twoFileCommandHelper(moveFile, parts) end
 	if command == "move" then return twoFileCommandHelper(moveFile, parts) end
   	if command == "mkdir" then return filesystem.makeDirectory(fixPath(parts[2])) end
+	if command == "edit" then return runprog("opennt/edit.lua", parts) end
 	if command == "cmds" then printPaged([[
 Internal Commands:
 exit --- Exit the command interpreter, Usually restarts it.
@@ -219,7 +244,8 @@ del ---- Deletes a file.
 copy --- Copies a file.
 move --- Moves a file.
 ren ---- Renames a file.
-mkdir -- Creates a directory.]]) printPaged() return true end
+mkdir -- Creates a directory.
+edit --- Opens a simple Text Editor.]]) printPaged() return true end
 
   --external commands and programs
 	command = parts[1]
@@ -262,68 +288,68 @@ if shell.runline(table.concat(tArgs, " ")) == "exit" then return end
 local cmds = {"exit", "cls", "ver", "mem", "dir ", "cmds", "intro", "drives", "labels", "echo ", "type ", "more ", "touch", "del ", "copy ", "move ", "ren ", "mkdir "}
 
 while true do
-	if miniOS.cmdBat and #miniOS.cmdBat == 0 then
-		miniOS.cmdBat = nil
+	if ntkrnl.cmdBat and #ntkrnl.cmdBat == 0 then
+		ntkrnl.cmdBat = nil
 	end
 
 	local line
-	if miniOS.cmdBat then
-		while #miniOS.cmdBat > 0 do
+	if ntkrnl.cmdBat then
+		while #ntkrnl.cmdBat > 0 do
 			repeat
-				line = miniOS.cmdBat[#miniOS.cmdBat][1]
+				line = ntkrnl.cmdBat[#ntkrnl.cmdBat][1]
 				if line == nil then
-					miniOS.cmdBat[#miniOS.cmdBat] = nil
+					ntkrnl.cmdBat[#ntkrnl.cmdBat] = nil
 					line = ""
 				else
-					table.remove(miniOS.cmdBat[#miniOS.cmdBat], 1)
+					table.remove(ntkrnl.cmdBat[#ntkrnl.cmdBat], 1)
 				end
-			until line ~= "" or #miniOS.cmdBat <= 0
+			until line ~= "" or #ntkrnl.cmdBat <= 0
 			if line ~= "" then break end
 		end
 	else
 		term.write(filesystem.drive.getcurrent() ..">")
 		line = term.read(history, nil, function(line, pos)
-      local filtered = {}
+      		local filtered = {}
       
-      local space = string.match(line, '^.*() ')
+      		local space = string.match(line, '^.*() ')
       
-      if space == nil then
-        for _,option in ipairs(cmds) do
-          if string.sub(option, 1, #line) == line then
-            filtered[#filtered + 1] = option
-          end
-        end
-      end
+      		if space == nil then
+        		for _,option in ipairs(cmds) do
+          			if string.sub(option, 1, #line) == line then
+            			filtered[#filtered + 1] = option
+          			end
+        		end
+      		end
       
-      local preline
-      if space ~= nil then
-        preline = string.sub(line, 1, space)
-        line = string.sub(line, space + 1)
-      else
-        preline = ""
-      end
-      local path
-      local dirsep = string.match(line, '^.*()/')
-      if dirsep ~= nil then
-        path = string.sub(line, 1, dirsep)
-      else path = "" end
+      		local preline
+      		if space ~= nil then
+        		preline = string.sub(line, 1, space)
+        		line = string.sub(line, space + 1)
+      		else
+        		preline = ""
+      		end
+      		local path
+      		local dirsep = string.match(line, '^.*()/')
+      		if dirsep ~= nil then
+        		path = string.sub(line, 1, dirsep)
+      		else path = "" end
       
-      for file in fs.list(path) do
-        file = path .. file
-        if string.sub(file, 1, #line) == line and string.sub(file, -1) == '/' then
-          filtered[#filtered + 1] = preline .. file
-        elseif string.sub(file, 1, #line) == line and (string.sub(file, -4) == '.lua' or string.sub(file, -4) == '.bat') then
-          filtered[#filtered + 1] = preline .. file .. ' '
-        end
-      end
-      return filtered
-    end)
+      		for file in fs.list(path) do
+        		file = path .. file
+        		if string.sub(file, 1, #line) == line and string.sub(file, -1) == '/' then
+          		filtered[#filtered + 1] = preline .. file
+        		elseif string.sub(file, 1, #line) == line and (string.sub(file, -4) == '.lua' or string.sub(file, -4) == '.bat') then
+          		filtered[#filtered + 1] = preline .. file .. ' '
+        		end
+      		end
+      		return filtered
+    	end)
 		while #history > 10 do
 			table.remove(history, 1)
 		end
 	end
 	if shell.runline(line) == "exit" then
-		if miniOS.cmdBat then miniOS.cmdBat[#miniOS.cmdBat] = nil end
+		if ntkrnl.cmdBat then ntkrnl.cmdBat[#ntkrnl.cmdBat] = nil end
 		return true
 	end
 end

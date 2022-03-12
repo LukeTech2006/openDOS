@@ -478,10 +478,10 @@ function fs_code()
   function fs.drive.listProxy()
     local t = fs.drive._map
     local p = {}
-	for n in pairs(t) do table.insert(p, n) end
-    table.sort(p, f)
-    local i = 0      -- iterator variable
-    local iter = function ()   -- iterator function
+	  for n in pairs(t) do table.insert(p, n) end
+      table.sort(p, f)
+      local i = 0      -- iterator variable
+      local iter = function ()   -- iterator function
       i = i + 1
       if p[i] == nil then return nil
       else return p[i], t[p[i]]
@@ -491,17 +491,17 @@ function fs_code()
   end
   function fs.drive.list()
     local i = 0      -- iterator variable
-	local proxyIter = fs.drive.listProxy()
+	  local proxyIter = fs.drive.listProxy()
     local iter = function ()   -- iterator function
 	  l, p = proxyIter()
 	  if not l then return nil end
       return l, p.address
     end
-	return iter
+	  return iter
   end
   fs.drive._current = "A" --as the boot drive is A:
   function fs.drive.setcurrent(letter)
-	letter = letter:upper()
+	  letter = letter:upper()
     if not fs.drive._map[letter] then error("Invalid Drive", 2) end
     fs.drive._current = letter
   end
@@ -1354,7 +1354,7 @@ component_code()
 text = text_code()
 filesystem = fs_code()
 fs = filesystem
-keyboard = keyboard_code(dofile("keyboard.lua"))
+keyboard = keyboard_code(dofile("opennt/keyboard.lua"))
 term = terminal_code()
 
 -- set up other functions...
@@ -1491,11 +1491,11 @@ ntkrnl.freeMem = computer.freeMemory()
 
 --start command and keep it running.
 local fallback_drive = fs.drive.getcurrent()
-if filesystem.exists("autoexec.bat") then shellrun("command.lua", "-c", "autoexec.bat") else shellrun("command.lua") end
+if filesystem.exists("autoexec.bat") then shellrun("opennt/command.lua", "-c", "autoexec.bat") else shellrun("opennt/command.lua") end
 while true do
   ntkrnl.freeMem = computer.freeMemory()
 	if not ntkrnl.cmdBat then print() end
   fs.drive.setcurrent(fallback_drive)
   local new = false;
-  if not shellrun("command.lua", (not new and "-c") or nil) then new = true; printErr("Will restart command interpreter..."); kernelError(); end
+  if not shellrun("opennt/command.lua", (not new and "-c") or nil) then new = true; printErr("Will restart command interpreter..."); kernelError(); end
 end
