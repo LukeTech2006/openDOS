@@ -1393,6 +1393,7 @@ event_code, component_code, text_code, fs_code, terminal_code, keyboard_code = n
 filesystem.drive.scan()
 
 ntkrnl = {} --set up identifier for os (will contain more info later on)
+driver = {} --set up driver environments
 
 memtest()
 
