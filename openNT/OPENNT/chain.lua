@@ -1,3 +1,5 @@
+if not ntkrnl then error("This program can only run in DOS Mode!", 0) end --are we in openNT?
+
 local targs = {...}
 local opt = table.remove(targs, 1)
 
@@ -34,7 +36,7 @@ nex - start OS from path, allows set
 
 Warning!
 If the OS returns then REBOOT!
-miniOS will probably be broken.]])
+openNT will probably be broken.]])
   return
 end
 

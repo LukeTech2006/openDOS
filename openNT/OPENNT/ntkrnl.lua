@@ -420,9 +420,6 @@ function event_code()
     }
     return id
   end
-  
-  -------------------------------------------------------------------------------
-  
   return event
 end
 
@@ -1130,6 +1127,7 @@ function terminal_code()
   return term
 end
 
+--keyboard code
 function keyboard_code(keyboard_data)
   local keyboard = {pressedChars = {}, pressedCodes = {}, keys = keyboard_data.keys}
   
@@ -1382,8 +1380,7 @@ if term.isAvailable() then
   term.clear()
 end
 
-print("Starting " .. _OSNAME .. "...\n")
---print(_OSCREDIT .. "\n")
+print("Starting ".._OSNAME.." ".._OSVER.."...\n")
 
 --clean up libs
 event_code, component_code, text_code, fs_code, terminal_code, keyboard_code = nil, nil, nil, nil, nil, nil

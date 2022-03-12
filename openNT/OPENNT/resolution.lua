@@ -1,4 +1,4 @@
-if not ntkrnl then error("This program can only run in DOS Mode!", 0) end
+if not ntkrnl then error("This program can only run in DOS Mode!", 0) end --are we in openNT?
 
 local args = {...}
 local gpu = term.gpu()
@@ -10,7 +10,7 @@ if #args == 0 then
   return
 end
 
-if #args ~= 2 then
+if #args ~= 2 then --in case of an error, give the user a hint
   print("Usage: resolution [<width> <height>]")
   return
 end

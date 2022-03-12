@@ -1,0 +1,5 @@
+local lang = {}
+lang.en_en = {
+    ["faterr"]      = "A fatal Error occured.",
+    ["fsrom"]       = "Filesystem is read-only."
+}

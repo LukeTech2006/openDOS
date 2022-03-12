@@ -1,5 +1,4 @@
 local keyboard = {}
-
 keyboard.keys = {
   ["1"]           = 0x02,
   ["2"]           = 0x03,

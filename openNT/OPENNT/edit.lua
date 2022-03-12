@@ -1,4 +1,4 @@
-if not ntkrnl then error("This program can only run in DOS Mode!", 0) end
+if not ntkrnl then error("This program can only run in DOS Mode!", 0) end --are we in openNT?
 
 if not term.isAvailable() then
   return
@@ -19,10 +19,10 @@ local filename = args[1]
 readonly = readonly or fs.get(filename) == nil or fs.get(filename).isReadOnly()
 
 if fs.isDirectory(filename) then
-  io.stderr:write("file is a directory\n")
+  io.stderr:write("File is a directory\n")
   return 1
 elseif not fs.exists(filename) and readonly then
-  io.stderr:write("file system is read only\n")
+  io.stderr:write("File system is read only\n")
   return 1
 end
 

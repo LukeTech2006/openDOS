@@ -1,5 +1,4 @@
--- command.lua, a very basic command interpreter for miniOS
-if not ntkrnl then error("This program can only run in DOS Mode!", 0) end
+if not ntkrnl then error("This program can only run in DOS Mode!", 0) end --are we in openNT?
 
 local shell = {}
 
@@ -198,7 +197,7 @@ local function runline(line)
 	if command == "rename" then return twoFileCommandHelper(moveFile, parts) end
 	if command == "ren" then return twoFileCommandHelper(moveFile, parts) end
 	if command == "move" then return twoFileCommandHelper(moveFile, parts) end
-  if command == "mkdir" then return filesystem.makeDirectory(fixPath(parts[2])) end
+  	if command == "mkdir" then return filesystem.makeDirectory(fixPath(parts[2])) end
 	if command == "cmds" then printPaged([[
 Internal Commands:
 exit --- Exit the command interpreter, Usually restarts it.
