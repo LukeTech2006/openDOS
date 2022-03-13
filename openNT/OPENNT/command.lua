@@ -1,6 +1,7 @@
 if not ntkrnl then error("This program can only run in DOS Mode!", 0) end --are we in openNT?
 
 local shell = {}
+dirPointer = "A:/"
 
 local tArgs={...}
 local continue
@@ -14,7 +15,7 @@ end
 if not continue then intro() end
 
 local function memtest()
-	print("Running Memtest...")
+	print("Running Memtest(R)...")
 	print(math.floor(computer.totalMemory() / 1024 * 10 + 0.5) /10 .. "KiB RAM present\n" .. math.floor(computer.freeMemory() / 1024 * 10 + 0.5) / 10 .. "KiB RAM available\n")
 end
 
@@ -106,7 +107,7 @@ end
 local function dir(folder)
 	local function getDirInsert(file, folder)
 		local size_disp
-		if folder == nil then folder = fs.drive.getcurrent() end
+		if folder == nil then folder = dirPointer end
 		filepath = folder.."/"..file
 		if filesystem.isDirectory(filepath) then size_disp = "<DIR>" else
 			local tempfile = fs.open(filepath)
@@ -119,8 +120,8 @@ local function dir(folder)
 			size_disp = size_disp.." "
 		end return size_disp.."| "
 	end
-	--we will have to get the current dir later (we will need fs.resolve!)
-	folder = (folder or "")
+	--we will have to get the current dir
+	if folder ~= nil then folder = dirPointer..folder else folder = dirPointer end
 	--is it a directory?
 	if not fs.isDirectory(folder, folder) then print("No such folder.") return end
 	--if it is we start...
@@ -135,6 +136,25 @@ local function dir(folder)
 	output = output:gsub("/", "")
 	--we want the output to be paged
 	printPaged("+-----------+----------------\n|Size       | File Name\n+-----------+----------------\n|<DIR>      | .\n|<DIR>      | ..\n"..output.."+-----------+----------------")
+end
+
+local function changeDir(relPath)
+	if relPath == ".." then
+		if #dirPointer > 3 then --check if we are actually in a subdirectory, else return
+			local newPath = {}
+			for word in dirPointer:gmatch('[^/%s]+') do --break up pointer, going "up" one directory
+				table.insert(newPath, word)
+			end
+			table.remove(newPath, #newPath)
+			dirPointer = table.concat(newPath, "/").."/" --create new pointer
+			return
+		else return end
+	end
+	if relPath ~= "." then
+		if filesystem.isDirectory(dirPointer..relPath) and filesystem.exists(dirPointer..relPath) then
+			dirPointer = dirPointer..relPath.."/"
+		else printErr("Folder does not exist.") end
+	end
 end
 
 local function moveFile(from, to, force)
@@ -212,6 +232,7 @@ local function runline(line)
 	if command == "ver" then print(_OSVERSION) return true end
 	if command == "mem" then memtest() return true end
 	if command == "dir" then if parts[2] then dir(fixPath(parts[2])) else dir() end return true end
+	if command == "cd" then if parts[2] then changeDir(fixPath(parts[2])) end return true end
 	if command == "intro" then intro() return true end
 	if command == "disks" then listdrives() return true end
 	if command == "drives" then listdrives() return true end
@@ -228,7 +249,7 @@ local function runline(line)
 	if command == "rename" then return twoFileCommandHelper(moveFile, parts) end
 	if command == "ren" then return twoFileCommandHelper(moveFile, parts) end
 	if command == "move" then return twoFileCommandHelper(moveFile, parts) end
-  	if command == "mkdir" then return filesystem.makeDirectory(fixPath(parts[2])) end
+  	if command == "mkdir" then return filesystem.makeDirectory(fixPath(dirPointer..parts[2])) end
 	if command == "edit" then return runprog("A:/opennt/edit.lua", parts) end
 	if command == "cmds" then printPaged([[
 Internal Commands:
@@ -237,6 +258,7 @@ cls ---- Clears the screen.
 ver ---- Outputs version information.
 mem ---- Outputs memory information.
 dir ---- Lists the files on the current disk or a path.
+cd ----- Changes the current directory. 
 cmds --- Lists the commands.
 intro -- Outputs the introduction message.
 drives - Lists the drives and their addresses.
@@ -292,7 +314,7 @@ end
 
 if shell.runline(table.concat(tArgs, " ")) == "exit" then return end
 
-local cmds = {"exit", "cls", "ver", "mem", "dir ", "cmds", "intro", "drives", "labels", "echo ", "type ", "more ", "touch", "del ", "copy ", "move ", "ren ", "mkdir ", "edit "}
+local cmds = {"exit", "cls", "ver", "mem", "dir ", "cd", "cmds", "intro", "drives", "labels", "echo ", "type ", "more ", "touch", "del ", "copy ", "move ", "ren ", "mkdir ", "edit "}
 
 while true do
 	if ntkrnl.cmdBat and #ntkrnl.cmdBat == 0 then
@@ -314,7 +336,7 @@ while true do
 			if line ~= "" then break end
 		end
 	else
-		term.write(filesystem.drive.getcurrent() ..">")
+		term.write(dirPointer .. ">")
 		line = term.read(history, nil, function(line, pos)
       		local filtered = {}
       
