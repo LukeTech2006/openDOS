@@ -1381,7 +1381,7 @@ if term.isAvailable() then
   term.clear()
 end
 
-local function memtest()
+local function memtest() --internal self test, will be reworked later on to be a full boot sequence in the american megatrends style
   print("Running Memtest...")
   print(math.floor(computer.totalMemory() / 1024 * 10 + 0.5) /10 .. "KiB RAM present\n" .. math.floor(computer.freeMemory() / 1024 * 10 + 0.5) / 10 .. "KiB RAM available\n")
 end
@@ -1394,8 +1394,26 @@ filesystem.drive.scan()
 
 ntkrnl = {} --set up identifier for os (will contain more info later on)
 driver = {} --set up driver environments
+lang = {} --set up language environment
 
 memtest()
+
+os.bsod = function(code)
+  local code = code or '00000000'
+  local w, h = component.gpu.getResolution()
+  term.setCursorBlink(false)
+  gpu.setBackground(0x0000FF)
+  gpu.setForeground(0xFFFFFF)
+  term.clear()
+  term.setCursor(0,0)
+  print('A fatal Error occured. The application was halted.\nPress ENTER to return.\n\nError Code: 0x'..code)
+  term.read()
+  component.gpu.setBackground(0x000000)
+  component.gpu.setForeground(0xFFFFFF)
+  term.setCursorBlink(true)
+  term.clear()
+  term.setCursor(0,0)
+end
 
 local function interrupt(data)
   --print("INTERRUPT!")
@@ -1502,9 +1520,9 @@ ntkrnl.freeMem = computer.freeMemory()
 local fallback_drive = fs.drive.getcurrent()
 if filesystem.exists("autoexec.bat") then shellrun("opennt/command.lua", "-c", "autoexec.bat") else shellrun("opennt/command.lua") end
 while true do
-  ntkrnl.freeMem = computer.freeMemory()
-	if not ntkrnl.cmdBat then print() end
-  fs.drive.setcurrent(fallback_drive)
-  local new = false;
-  if not shellrun("opennt/command.lua", (not new and "-c") or nil) then new = true; printErr("Will restart command interpreter..."); kernelError(); end
+ntkrnl.freeMem = computer.freeMemory()
+if not ntkrnl.cmdBat then print() end
+fs.drive.setcurrent(fallback_drive)
+local new = false;
+if not shellrun("opennt/command.lua", (not new and "-c") or nil) then new = true; printErr("Will restart command interpreter..."); kernelError(); end
 end
