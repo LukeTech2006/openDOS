@@ -2,6 +2,7 @@ _G._OSNAME = "openNT"
 _G._OSVER = "0.0.0"
 _G._OSVERSION = _OSNAME .. " " .. _OSVER
 _G._OSCREDIT = "A NT-Emulator OS, based off of miniOS classic by Skye, based off of OpenOS code from OpenComputers.\nminiOS code is under BSD 2-clause licence, OpenOS code is under the MIT licence."
+_G._OEMVER = nil
 
 --component code
 function component_code()
@@ -1381,7 +1382,7 @@ if term.isAvailable() then
   term.clear()
 end
 
-local function memtest() --internal self test, will be reworked later on to be a full boot sequence in the american megatrends style
+local function memtest() --internal self test (sorta POST), will be reworked later on to be a full boot sequence in the american megatrends style
   print("Running Memtest...")
   print(math.floor(computer.totalMemory() / 1024 * 10 + 0.5) /10 .. "KiB RAM present\n" .. math.floor(computer.freeMemory() / 1024 * 10 + 0.5) / 10 .. "KiB RAM available\n")
 end
