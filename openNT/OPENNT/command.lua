@@ -251,30 +251,32 @@ local function runline(line)
 	if command == "move" then return twoFileCommandHelper(moveFile, parts) end
   	if command == "mkdir" then return filesystem.makeDirectory(fixPath(dirPointer..parts[2])) end
 	if command == "edit" then return runprog("A:/opennt/edit.lua", parts) end
+	if command == "shutdown" then return runprog("A:/opennt/shutdown.lua", parts) end
 	if command == "cmds" then printPaged([[
 Internal Commands:
-exit --- Exit the command interpreter.
-cls ---- Clears the screen.
-ver ---- Outputs version information.
-mem ---- Outputs memory information.
-dir ---- Lists the files on the current disk or a path.
-cd ----- Changes the current directory. 
-cmds --- Lists the commands.
-intro -- Outputs the introduction message.
-drives - Lists the drives and their addresses.
-labels - Lists the drives and their labels.
-scndrv - Updates the drive list.
-label -- Sets the label of a drive.
-echo --- Outputs its arguments.
-type --- Like echo, but outputs a file.
-more --- Like type, but the output is paged.
-touch -- Creates a file.
-del ---- Deletes a file.
-copy --- Copies a file.
-move --- Moves a file.
-ren ---- Renames a file.
-mkdir -- Creates a directory.
-edit --- Opens a simple Text Editor.]]) printPaged() return true end
+exit ----- Exit the command interpreter.
+cls ------ Clears the screen.
+ver ------ Outputs version information.
+mem ------ Outputs memory information.
+dir ------ Lists the files on the current disk or a path.
+cd ------- Changes the current directory. 
+cmds ----- Lists the commands.
+intro ---- Outputs the introduction message.
+drives --- Lists the drives and their addresses.
+labels --- Lists the drives and their labels.
+scndrv --- Updates the drive list.
+label ---- Sets the label of a drive.
+echo ----- Outputs its arguments.
+type ----- Like echo, but outputs a file.
+more ----- Like type, but the output is paged.
+touch ---- Creates a file.
+del ------ Deletes a file.
+copy ----- Copies a file.
+move ----- Moves a file.
+ren ------ Renames a file.
+mkdir ---- Creates a directory.
+shutdown - Shuts down the computer.
+edit ----- Opens a simple Text Editor.]]) printPaged() return true end
 
   --external commands and programs
 	command = parts[1]

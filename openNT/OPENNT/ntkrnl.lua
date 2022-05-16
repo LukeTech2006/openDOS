@@ -2,7 +2,6 @@ _G._OSNAME = "openNT"
 _G._OSVER = "0.0.0"
 _G._OSVERSION = _OSNAME .. " " .. _OSVER
 _G._OSCREDIT = "A NT-Emulator OS, based off of miniOS classic by Skye, based off of OpenOS code from OpenComputers.\nminiOS code is under BSD 2-clause licence, OpenOS code is under the MIT licence."
-_G._OEMVER = nil
 
 --component code
 function component_code()
@@ -1382,9 +1381,40 @@ if term.isAvailable() then
   term.clear()
 end
 
-local function memtest() --internal self test (sorta POST), will be reworked later on to be a full boot sequence in the american megatrends style
-  print("Running Memtest...")
-  print(math.floor(computer.totalMemory() / 1024 * 10 + 0.5) /10 .. "KiB RAM present\n" .. math.floor(computer.freeMemory() / 1024 * 10 + 0.5) / 10 .. "KiB RAM available\n")
+local function selftest() --internal self test (sorta POST), will be reworked later on to be a full boot sequence in the american megatrends style
+  if math.floor(computer.totalMemory() / 1024 + 0.5) < 1025 then
+    ntkrnl.mem = math.floor(computer.totalMemory() / 1024 + 0.5); ntkrnl.himem = 0
+  else
+    ntkrnl.mem = 1024; ntkrnl.himem = math.floor(computer.totalMemory() / 1024 + 0.5) - 1024
+  end
+  
+  term.setCursorBlink(false)
+  term.clear()
+  print('openNT startup diagnostic\n(C)2022 Lukas Kretschmar\n')
+  term.write('Testing Memory...........')
+  os.sleep(0.46)
+  term.write('OK (' .. tostring(ntkrnl.mem) .. 'KiB)\n')
+  term.write('Testing Extended Memory..')
+  os.sleep(0.32)
+  term.write('OK (' .. tostring(ntkrnl.himem) .. 'KiB)\n\n')
+  print('Components available:')
+  term.write('EEPROM...................')
+  os.sleep(0.16)
+  if component.isAvailable("eeprom") then term.write("OK\n") else term.write("NONE\n") end
+  term.write('Modem....................')
+  os.sleep(0.25)
+  if component.isAvailable("modem") then term.write("OK\n") else term.write("NONE\n") end
+  term.write('Internet.................')
+  os.sleep(1.40)
+  if component.isAvailable("internet") then term.write("OK\n") else term.write("NONE\n") end
+  term.write('Redstone.................')
+  os.sleep(0.73)
+  if component.isAvailable("redstone") then term.write("OK\n") else term.write("NONE\n") end
+  term.write('Graphics Card............')
+  os.sleep(0.28)
+  if component.isAvailable("gpu") then term.write("OK\n\n") else term.write("NONE\n\n") end
+  os.sleep(2)
+  term.setCursorBlink(true)
 end
 
 print("Starting ".._OSNAME.."...\n")
@@ -1397,24 +1427,7 @@ ntkrnl = {} --set up identifier for os (will contain more info later on)
 driver = {} --set up driver environments
 lang = {} --set up language environment
 
-memtest()
-
-os.bsod = function(code)
-  local code = code or '00000000'
-  local w, h = component.gpu.getResolution()
-  term.setCursorBlink(false)
-  gpu.setBackground(0x0000FF)
-  gpu.setForeground(0xFFFFFF)
-  term.clear()
-  term.setCursor(0,0)
-  print('A fatal Error occured. The application was halted.\nPress ENTER to return.\n\nError Code: 0x'..code)
-  term.read()
-  component.gpu.setBackground(0x000000)
-  component.gpu.setForeground(0xFFFFFF)
-  term.setCursorBlink(true)
-  term.clear()
-  term.setCursor(0,0)
-end
+selftest()
 
 local function interrupt(data)
   --print("INTERRUPT!")
