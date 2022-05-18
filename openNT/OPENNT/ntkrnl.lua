@@ -1,7 +1,7 @@
 _G._OSNAME = "openNT"
 _G._OSVER = "0.0.0"
 _G._OSVERSION = _OSNAME .. " " .. _OSVER
-_G._OSCREDIT = "A NT-Emulator OS, based off of miniOS classic by Skye, based off of OpenOS code from OpenComputers.\nminiOS code is under BSD 2-clause licence, OpenOS code is under the MIT licence."
+_G._OSCREDIT = "A NT-Emulator OS, based off of miniOS classic by Skye.\nminiOS code is under BSD 2-clause licence."
 
 --component code
 function component_code()
