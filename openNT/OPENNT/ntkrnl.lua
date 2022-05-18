@@ -471,7 +471,7 @@ function fs_code()
   	l = "C"
 	    while true do
 		    --see if it is mapped and then go to the next letter...
-		    if fs.drive._map[l] then l = ('ABCDEFGHIJKLMNOPQRSTUVWXYZ_'):match(l..'(.)') else fs.drive.mapAddress(l, address) return l end
+		    if fs.drive._map[l] then l = ('CABDEFGHIJKLMNOPQRSTUVWXYZ_'):match(l..'(.)') else fs.drive.mapAddress(l, address) return l end
 		    
         --if we got to the end, fail
 		    if l == "_" then return false end
@@ -681,7 +681,7 @@ function fs_code()
   local function driveInit()
     local boot = fs.proxy(computer.getBootAddress())
     local temp = fs.proxy(computer.tmpAddress())
-    fs.drive._map = { ["A"]=boot, ["X"]=temp } 
+    fs.drive._map = { ["C"]=boot, ["X"]=temp } 
   end
 
   driveInit()
