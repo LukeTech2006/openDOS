@@ -1,7 +1,7 @@
 if not ntkrnl then error("This program can only run in DOS Mode!", 0) end --are we in openNT?
 
 local shell = {}
-dirPointer = "A:/"
+dirPointer = "C:/"
 
 local tArgs={...}
 local continue
@@ -250,8 +250,8 @@ local function runline(line)
 	if command == "ren" then return twoFileCommandHelper(moveFile, parts) end
 	if command == "move" then return twoFileCommandHelper(moveFile, parts) end
   	if command == "mkdir" then return filesystem.makeDirectory(fixPath(dirPointer..parts[2])) end
-	if command == "edit" then return runprog("A:/opennt/edit.lua", parts) end
-	if command == "shutdown" then return runprog("A:/opennt/shutdown.lua", parts) end
+	if command == "edit" then return runprog("C:/opennt/edit.lua", parts) end
+	if command == "shutdown" then return runprog("C:/opennt/shutdown.lua", parts) end
 	if command == "cmds" then printPaged([[
 Internal Commands:
 exit ----- Exit the command interpreter.
