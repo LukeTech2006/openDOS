@@ -9,8 +9,6 @@ function component_code()
   local removing = {}
   local primaries = {}
 
-  -------------------------------------------------------------------------------
-
   -- This allows writing component.modem.open(123) instead of writing
   -- component.getPrimary("modem").open(123), which may be nicer to read.
   setmetatable(component, { __index = function(_, key)
@@ -115,7 +113,6 @@ function component_code()
 
   event.listen("component_added", onComponentAdded)
   event.listen("component_removed", onComponentRemoved)
-
 end
 
 --text libary
@@ -187,9 +184,7 @@ function text_code()
       end
     end
   end
-  
-  -------------------------------------------------------------------------------
-  
+
   function text.tokenize(value)
     checkArg(1, value, "string")
     local tokens, token = {}, ""
@@ -226,9 +221,7 @@ function text_code()
     end
     return tokens
   end
-  
-  -------------------------------------------------------------------------------
-  
+
   function text.endswith(s, send)
     return #s >= #send and s:find(send, #s-#send+1, true) and true or false
   end
@@ -300,8 +293,6 @@ function event_code()
       call(callback)
     end
   end
-  
-  -------------------------------------------------------------------------------
   
   function event.cancel(timerId)
     checkArg(1, timerId, "number")
@@ -375,8 +366,8 @@ function event_code()
     end
   
     local deadline = seconds and
-                     (computer.uptime() + seconds) or
-                     (hasFilter and math.huge or 0)
+      (computer.uptime() + seconds) or
+      (hasFilter and math.huge or 0)
     repeat
       local closest = seconds and deadline or math.huge
       for _, timer in pairs(timers) do
@@ -420,6 +411,7 @@ function event_code()
     }
     return id
   end
+
   return event
 end
 
@@ -427,12 +419,15 @@ end
 function fs_code()
   local fs = {}
   fs.drive = {}
+
   --drive mapping table, initilized later
   fs.drive._map = {}
+
   --converts a drive letter into a proxy
   function fs.drive.letterToProxy(letter)
 	  return fs.drive._map[letter]
   end
+
   --finds the proxy associated with the letter
   function fs.drive.proxyToLetter(proxy)
     for l,p in pairs(fs.drive._map) do
@@ -440,41 +435,49 @@ function fs_code()
 	  end
 	  return nil
   end
+
   --maps a proxy to a letter
   function fs.drive.mapProxy(letter, proxy)
     fs.drive._map[letter] = proxy
   end
+
   --finds the address of a drive letter.
   function fs.drive.toAddress(letter)
     return fs.drive._map[letter].address
   end
+
   --finds the drive letter mapped to an address
   function fs.drive.toLetter(address)
-	for l,p in pairs(fs.drive._map) do
-	  if p.address == address then return l end
-	end
-	return nil
+	  for l,p in pairs(fs.drive._map) do
+	    if p.address == address then return l end
+	  end
+	  return nil
   end
+
   function fs.drive.mapAddress(letter, address)
-  --print("mapAddress")
+    --print("mapAddress")
     if address == nil then fs.drive._map[letter] = nil
     else fs.drive._map[letter] = fs.proxy(address) end
   end
+
   function fs.drive.autoMap(address) --returns the letter if mapped OR already mapped, false if not.
-	--print("autoMap")
-	--we get the address and see if it already is mapped...
-	local l = fs.drive.toLetter(address)
-	if l then return l end
-	--then we take the address and attempt to map it
-	--start at A:	
-	l = "A"
-	while true do
-		--see if it is mapped and then go to the next letter...
-		if fs.drive._map[l] then l = ('ABCDEFGHIJKLMNOPQRSTUVWXYZ_'):match(l..'(.)') else fs.drive.mapAddress(l, address) return l end
-		--if we got to the end, fail
-		if l == "_" then return false end
-	end
+	  --print("autoMap")
+	  --we get the address and see if it already is mapped...
+	  local l = fs.drive.toLetter(address)
+
+	  if l then return l end
+	  --then we take the address and attempt to map it
+	  --start at C:	
+  	l = "C"
+	    while true do
+		    --see if it is mapped and then go to the next letter...
+		    if fs.drive._map[l] then l = ('ABCDEFGHIJKLMNOPQRSTUVWXYZ_'):match(l..'(.)') else fs.drive.mapAddress(l, address) return l end
+		    
+        --if we got to the end, fail
+		    if l == "_" then return false end
+	    end
   end
+
   function fs.drive.listProxy()
     local t = fs.drive._map
     local p = {}
@@ -489,6 +492,7 @@ function fs_code()
     end
     return iter
   end
+
   function fs.drive.list()
     local i = 0      -- iterator variable
 	  local proxyIter = fs.drive.listProxy()
@@ -499,12 +503,15 @@ function fs_code()
     end
 	  return iter
   end
-  fs.drive._current = "A" --as the boot drive is A:
+
+  fs.drive._current = "C" --as the boot drive is A:
+
   function fs.drive.setcurrent(letter)
 	  letter = letter:upper()
     if not fs.drive._map[letter] then error("Invalid Drive", 2) end
     fs.drive._current = letter
   end
+
   function fs.drive.drivepathSplit(mixed)
     local drive = fs.drive._current
     local path
@@ -516,7 +523,9 @@ function fs_code()
     end
 	  return drive, path
   end
+
   function fs.drive.getcurrent() return fs.drive._current end
+
   function fs.drive.scan()
     local to_remove = {}
     for letter,proxy in pairs(fs.drive._map) do
@@ -531,7 +540,9 @@ function fs_code()
       if componentType == "filesystem" then filesystem.drive.autoMap(address) end
     end
   end
+
   function fs.invoke(method, ...) return fs.drive._map[fs.drive._current][method](...) end
+
   function fs.proxy(filter)
     checkArg(1, filter, "string")
     local address
@@ -553,6 +564,7 @@ function fs_code()
     end
     return component.proxy(address)
   end
+
   function fs.open(file, mode)
     local drive, handle, proxy
     drive, path = fs.drive.drivepathSplit(file)
@@ -561,25 +573,33 @@ function fs_code()
 	  if not handle then return nil, reason end
     return setmetatable({_handle = handle, _proxy = proxy}, {__index = fs})
   end
+
   function fs.write(handle, data) return handle._proxy.write(handle._handle, data) end
+
   function fs.read(handle, length) return handle._proxy.read(handle._handle, length or math.huge) end
+
   function fs.seek(handle, whence, offset) return handle._proxy.seek(handle._handle, whence, offset) end
+
   function fs.close(handle) return handle._proxy.close(handle._handle) end
+
   function fs.isDirectory(path)
     local drive
     drive, path = fs.drive.drivepathSplit(path)
     return fs.drive.letterToProxy(drive).isDirectory(path)
   end
+
   function fs.exists(path)
     local drive
     drive, path = fs.drive.drivepathSplit(path)
     return fs.drive.letterToProxy(drive).exists(path)
   end
+
   function fs.remove(path)
     local drive
     drive, path = fs.drive.drivepathSplit(path)
     return fs.drive.letterToProxy(drive).remove(path)
   end
+
   function fs.copy(fromPath, toPath)
     if fs.isDirectory(fromPath) then
       return nil, "cannot copy folders"
@@ -606,39 +626,41 @@ function fs_code()
           end
         end
     until not buffer
-    filesystem.close(input)
-    filesystem.close(output)
+      filesystem.close(input)
+      filesystem.close(output)
     return true
   end
+
   function fs.rename(path1, path2)
     local drive
     drive, path = fs.drive.drivepathSplit(path)
     return fs.drive.letterToProxy(drive).rename(path1, path2)
   end
+
   function fs.makeDirectory(path)
     local drive
     drive, path = fs.drive.drivepathSplit(path)
     return fs.drive.letterToProxy(drive).makeDirectory(path)
   end
+
   function fs.list(path)
     local drive
     drive, path = fs.drive.drivepathSplit(path)
-
     local i = 0
     local t = fs.drive.letterToProxy(drive).list(path)
-	local n = #t
+	  local n = #t
     return function()
       i = i + 1
 	  if i <= n then return t[i] end
-	  return nil
-	end
+	  return nil end
   end
+
   function fs.get(path)
     local drive
-	drive, path = fs.drive.drivepathSplit(path)
-	drive = fs.drive.letterToProxy(drive)
-	if not drive then return nil, "no such file system"
-	else return drive, path end
+	  drive, path = fs.drive.drivepathSplit(path)
+	  drive = fs.drive.letterToProxy(drive)
+	  if not drive then return nil, "no such file system"
+	  else return drive, path end
   end
   
   --handle inserted and removed filesystems
@@ -652,13 +674,16 @@ function fs_code()
       fs.drive.mapAddress(fs.drive.toLetter(address), nil)
     end
   end
+
   event.listen("component_added", onComponentAdded)
   event.listen("component_removed", onComponentRemoved)
+
   local function driveInit()
     local boot = fs.proxy(computer.getBootAddress())
     local temp = fs.proxy(computer.tmpAddress())
     fs.drive._map = { ["A"]=boot, ["X"]=temp } 
   end
+
   driveInit()
   --return the API
   return fs
@@ -694,9 +719,7 @@ function terminal_code()
       end
     end
   end
-  
-  -------------------------------------------------------------------------------
-  
+
   function term.clear()
     if term.isAvailable() then
       local w, h = component.gpu.getResolution()
@@ -925,8 +948,6 @@ function terminal_code()
     local function tab()
       if not hints.handler then return end
       local main_kb = term.keyboard()
-      -- term may not have a keyboard
-      -- in which case, we shouldn't be handling tab events
       if not main_kb then
         return
       end
