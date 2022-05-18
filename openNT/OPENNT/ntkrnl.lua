@@ -1,5 +1,5 @@
 _G._OSNAME = "openNT"
-_G._OSVER = "0.0.0"
+_G._OSVER = "0.1.5"
 _G._OSVERSION = _OSNAME .. " " .. _OSVER
 _G._OSCREDIT = "A NT-Emulator OS, based off of miniOS classic by Skye.\nminiOS code is under BSD 2-clause licence."
 
