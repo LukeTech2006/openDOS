@@ -1,0 +1,3 @@
+ntkrnl.drivers = [
+  "OPENNT/DRIVERS/EXAMPLE.DRV"
+]

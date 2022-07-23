@@ -50,7 +50,7 @@ function component_code()
   function component.getPrimary(componentType)
     checkArg(1, componentType, "string")
     assert(component.isAvailable(componentType),
-      "no primary '" .. componentType .. "' available")
+      "No primary '" .. componentType .. "' available")
     return primaries[componentType]
   end
 
@@ -59,7 +59,7 @@ function component_code()
     checkArg(2, address, "string", "nil")
     if address ~= nil then
       address = component.get(address, componentType)
-      assert(address, "no such component")
+      assert(address, "No such component")
     end
 
     local wasAvailable = primaries[componentType]
@@ -1409,33 +1409,26 @@ local function selftest() --internal self test (sorta POST), will be reworked la
     ntkrnl.mem = 1024; ntkrnl.himem = math.floor(computer.totalMemory() / 1024 + 0.5) - 1024
   end
   
-  term.setCursorBlink(false)
+  term.setCursorBlink(true)
   term.clear()
-  print('openNT startup diagnostic\n(C)2022 Lukas Kretschmar\n')
+  print('openNT startup diagnostic - (C)2022 Lukas Kretschmar\n\n')
   term.write('Testing Memory...........')
-  os.sleep(0.46)
   term.write('OK (' .. tostring(ntkrnl.mem) .. 'KiB)\n')
   term.write('Testing Extended Memory..')
-  os.sleep(0.32)
   term.write('OK (' .. tostring(ntkrnl.himem) .. 'KiB)\n\n')
+  os.sleep(2)
   print('Components available:')
   term.write('EEPROM...................')
-  os.sleep(0.16)
   if component.isAvailable("eeprom") then term.write("OK\n") else term.write("NONE\n") end
   term.write('Modem....................')
-  os.sleep(0.25)
   if component.isAvailable("modem") then term.write("OK\n") else term.write("NONE\n") end
   term.write('Internet.................')
-  os.sleep(1.40)
   if component.isAvailable("internet") then term.write("OK\n") else term.write("NONE\n") end
   term.write('Redstone.................')
-  os.sleep(0.73)
   if component.isAvailable("redstone") then term.write("OK\n") else term.write("NONE\n") end
   term.write('Graphics Card............')
-  os.sleep(0.28)
   if component.isAvailable("gpu") then term.write("OK\n\n") else term.write("NONE\n\n") end
   os.sleep(2)
-  term.setCursorBlink(true)
 end
 
 print("Starting ".._OSNAME.."...\n")

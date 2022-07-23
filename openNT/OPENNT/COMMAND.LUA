@@ -166,14 +166,14 @@ local function moveFile(from, to, force)
     end
 	if fs.exists(to) then
 		if not force then
-			printErr("target file exists")
+			printErr("Target file already exists!")
 			return
 		end
 		fs.remove(to)
 	end
 	local result, reason = fs.rename(from, to)
 	if not result then
-		error(reason or "unknown error", 0)
+		error(reason or "Unknown Error!", 0)
 	end
 end
 
@@ -186,14 +186,14 @@ local function copyFile(from, to, force)
     end
 	if fs.exists(to) then
 		if not force then
-			printErr("target file exists")
+			printErr("Target file already exists!")
 			return
 		end
 		fs.remove(to)
 	end
 	local result, reason = fs.copy(from, to)
 	if not result then
-		error(reason or "unknown error", 0)
+		error(reason or "Unknown Error!", 0)
 	end
 end
 
@@ -249,7 +249,7 @@ local function runline(line)
 	if command == "rename" then return twoFileCommandHelper(moveFile, parts) end
 	if command == "ren" then return twoFileCommandHelper(moveFile, parts) end
 	if command == "move" then return twoFileCommandHelper(moveFile, parts) end
-  	if command == "mkdir" then return filesystem.makeDirectory(fixPath(dirPointer..parts[2])) end
+  if command == "mkdir" then return filesystem.makeDirectory(fixPath(dirPointer..parts[2])) end
 	if command == "edit" then return runprog("C:/opennt/edit.lua", parts) end
 	if command == "shutdown" then return runprog("C:/opennt/shutdown.lua", parts) end
 	if command == "cmds" then printPaged([[
@@ -276,7 +276,7 @@ move ----- Moves a file.
 ren ------ Renames a file.
 mkdir ---- Creates a directory.
 shutdown - Shuts down the computer.
-edit ----- Opens a simple Text Editor.]]) printPaged() return true end
+edit ----- Opens a simple Text Editor. Takes an absolute Path.]]) printPaged() return true end
 
   --external commands and programs
 	command = parts[1]
