@@ -1437,16 +1437,16 @@ print("Starting ".._OSNAME.."...\n")
 event_code, component_code, text_code, fs_code, terminal_code, keyboard_code = nil, nil, nil, nil, nil, nil
 filesystem.drive.scan()
 
-ntkrnl = {} --set up identifier for os (will contain more info later on)
+ntkrnl = {} --set up environment for os
 driver = {} --set up driver environments
 lang = {} --set up language environment
 
-selftest()
+selftest() --execute POST
 
 local function interrupt(data)
   --print("INTERRUPT!")
   if data[2] == "RUN" then return ntkrnl.runfile(data[3], table.unpack(data[4])) end
-  if data[2] == "ERR" then error("This error is for testing!") end
+  if data[2] == "ERR" then error("Debug Error!") end
   if data[2] == "EXIT" then return data[3] end
 end
 
