@@ -1,3 +1,5 @@
+--High Level Init
+
 _G._OSNAME = "openNT"
 _G._OSVER = "0.1.5"
 _G._OSVERSION = _OSNAME .. " " .. _OSVER

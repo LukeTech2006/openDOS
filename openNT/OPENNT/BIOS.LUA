@@ -1,4 +1,4 @@
-local init
+local init; ntos = true
 do
   local component_invoke = component.invoke
   local function boot_invoke(address, method, ...)
@@ -27,9 +27,12 @@ do
     end
   end
   local function tryLoadFrom(address)
-    local handle, reason = boot_invoke(address, "open", "/init.lua")
+    local handle, reason = boot_invoke(address, "open", "/OPENNT/NTKRNL.LUA")
     if not handle then
-      return nil, reason
+      local handle, reason = boot_invoke(address, "open", "/init.lua")
+      if not handle then
+        return nil, reason
+      end
     end
     local buffer = ""
     repeat

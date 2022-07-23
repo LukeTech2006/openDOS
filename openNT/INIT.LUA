@@ -1,3 +1,6 @@
+--provide support for legacy bios, might be removed later on!
+
+ntkrnl.legacy = true
 local function loadfile(name)
   local handle, reason = component.invoke(computer.getBootAddress(), "open", name)
   if not handle then error(reason) end
@@ -11,5 +14,4 @@ local function loadfile(name)
   -- Tail call!
   return load(buffer, "=" .. name, 'bt', _G)
 end
--- Tail call!
-return loadfile("OPENNT/ntkrnl.lua")()
+return loadfile("OPENNT/NTKRNL.LUA")
