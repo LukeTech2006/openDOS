@@ -1381,6 +1381,10 @@ fs = filesystem
 keyboard = keyboard_code(dofile("keyboard.lua"))
 term = terminal_code()
 
+--set up vars
+ntkrnl = {}
+ntkrnl.freeMem = computer.freeMemory() --compatibility
+
 -- set up other functions...
 os.sleep = function(timeout)
   checkArg(1, timeout, "number", "nil")
@@ -1532,14 +1536,11 @@ local function shellrun(...)
 	return true
 end
 
+event_code, component_code, text_code, fs_code, terminal_code, keyboard_code = nil, nil, nil, nil, nil, nil --clean up libs
+filesystem.drive.scan() --rescan fs
 
 print("Starting ".._OSNAME.."...\n")
 selftest() --execute POST
-
-event_code, component_code, text_code, fs_code, terminal_code, keyboard_code = nil, nil, nil, nil, nil, nil --clean up libs
-ntkrnl, driver, lang = {}, {}, {} --set up environment vars
-filesystem.drive.scan() --rescan fs
-ntkrnl.freeMem = computer.freeMemory() --compatibility
 
 --start embed code and keep it running.
 local fallback_drive = fs.drive.getcurrent()
