@@ -1,7 +1,7 @@
 --High Level Init
 
-_G._OSNAME = "openNT"
-_G._OSVER = "0.1.5"
+_G._OSNAME = "openNT Embed"
+_G._OSVER = "E.0.1"
 _G._OSVERSION = _OSNAME .. " " .. _OSVER
 _G._OSCREDIT = "A NT-Emulator OS, based off of miniOS classic by Skye.\nminiOS code is under BSD 2-clause licence."
 
@@ -1378,7 +1378,7 @@ component_code()
 text = text_code()
 filesystem = fs_code()
 fs = filesystem
-keyboard = keyboard_code(dofile("opennt/keyboard.lua"))
+keyboard = keyboard_code(dofile("keyboard.lua"))
 term = terminal_code()
 
 -- set up other functions...
@@ -1404,7 +1404,7 @@ if term.isAvailable() then
   term.clear()
 end
 
-local function selftest() --internal self test (sorta POST), will be reworked later on to be a full boot sequence in the american megatrends style
+local function selftest()
   if math.floor(computer.totalMemory() / 1024 + 0.5) < 1025 then
     ntkrnl.mem = math.floor(computer.totalMemory() / 1024 + 0.5); ntkrnl.himem = 0
   else
@@ -1432,18 +1432,6 @@ local function selftest() --internal self test (sorta POST), will be reworked la
   if component.isAvailable("gpu") then term.write("OK\n\n") else term.write("NONE\n\n") end
   os.sleep(2)
 end
-
-print("Starting ".._OSNAME.."...\n")
-
---clean up libs
-event_code, component_code, text_code, fs_code, terminal_code, keyboard_code = nil, nil, nil, nil, nil, nil
-filesystem.drive.scan()
-
-ntkrnl = {} --set up environment for os
-driver = {} --set up driver environments
-lang = {} --set up language environment
-
-selftest() --execute POST
 
 local function interrupt(data)
   --print("INTERRUPT!")
@@ -1544,15 +1532,22 @@ local function shellrun(...)
 	return true
 end
 
-ntkrnl.freeMem = computer.freeMemory()
 
---start command and keep it running.
+print("Starting ".._OSNAME.."...\n")
+selftest() --execute POST
+
+event_code, component_code, text_code, fs_code, terminal_code, keyboard_code = nil, nil, nil, nil, nil, nil --clean up libs
+ntkrnl, driver, lang = {}, {}, {} --set up environment vars
+filesystem.drive.scan() --rescan fs
+ntkrnl.freeMem = computer.freeMemory() --compatibility
+
+--start embed code and keep it running.
 local fallback_drive = fs.drive.getcurrent()
-if filesystem.exists("autoexec.bat") then shellrun("opennt/command.lua", "-c", "autoexec.bat") else shellrun("opennt/command.lua") end
+shellrun("USER.LUA")
 while true do
-ntkrnl.freeMem = computer.freeMemory()
+ntkrnl.freeMem = computer.freeMemory() --compatibility
 if not ntkrnl.cmdBat then print() end
 fs.drive.setcurrent(fallback_drive)
 local new = false;
-if not shellrun("opennt/command.lua", (not new and "-c") or nil) then new = true; printErr("Will restart command interpreter..."); kernelError(); end
+if not shellrun("USER.LUA", (not new and "-c") or nil) then new = true; printErr("Embed System Terminated!"); kernelError(); end
 end
