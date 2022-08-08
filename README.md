@@ -1,5 +1,8 @@
 openNT
-=============
+============
 
-A simple miniOS fork from https://github.com/skyem123 for me to play around with.
-Also, this is not meant for any kind of efficiency so do not expect a masterpiece of optimisation.
+Somewhat feature-rich DOS-Type Operating System. At some point I will do a Retro-Version which will contain COMPUTE, a BASIC-Type Operating System.
+COMPUTE will be a completely seperate Operating System, taking openNT as a basis. You may find more Information later on.
+
+
+Fork of https://github.com/skyem123
