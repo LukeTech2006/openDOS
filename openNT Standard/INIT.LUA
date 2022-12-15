@@ -1,6 +1,6 @@
---provide support for legacy bios, might be removed later on!
+--provide support for legacy bios, might be reworked to automatically flash the custom BIOS to the legacy EEPROM
+isLegacyBIOS = true
 
-ntkrnl.legacy = true
 local function loadfile(name)
   local handle, reason = component.invoke(computer.getBootAddress(), "open", name)
   if not handle then error(reason) end

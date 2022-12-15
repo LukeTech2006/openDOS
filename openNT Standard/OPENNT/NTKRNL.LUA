@@ -1404,33 +1404,31 @@ if term.isAvailable() then
   term.clear()
 end
 
-local function selftest() --internal self test (sorta POST), will be reworked later on to be a full boot sequence in the american megatrends style
+local function powerOnRoutine() --internal self test (sorta POST), will be reworked later on to be a full boot sequence in the american megatrends style
+
+  --calculate memory/high memory
   if math.floor(computer.totalMemory() / 1024 + 0.5) < 1025 then
     ntkrnl.mem = math.floor(computer.totalMemory() / 1024 + 0.5); ntkrnl.himem = 0
   else
     ntkrnl.mem = 1024; ntkrnl.himem = math.floor(computer.totalMemory() / 1024 + 0.5) - 1024
   end
   
-  term.setCursorBlink(true)
-  term.clear()
+  --display 'POST'-Style listing
+  term.setCursorBlink(true); term.clear()
   print('openNT startup diagnostic - (C)2022 Lukas Kretschmar\n\n')
-  term.write('Testing Memory...........')
-  term.write('OK (' .. tostring(ntkrnl.mem) .. 'KiB)\n')
-  term.write('Testing Extended Memory..')
-  term.write('OK (' .. tostring(ntkrnl.himem) .. 'KiB)\n\n')
-  os.sleep(2)
+  term.write('Testing Memory...........'); os.sleep(0.125)
+  term.write('OK (' .. tostring(ntkrnl.mem) .. 'KiB)\n'); os.sleep(0.25)
+  term.write('Testing Extended Memory..'); os.sleep(0.125)
+  term.write('OK (' .. tostring(ntkrnl.himem) .. 'KiB)\n\n'); os.sleep(1)
   print('Components available:')
-  term.write('EEPROM...................')
-  if component.isAvailable("eeprom") then term.write("OK\n") else term.write("NONE\n") end
-  term.write('Modem....................')
-  if component.isAvailable("modem") then term.write("OK\n") else term.write("NONE\n") end
-  term.write('Internet.................')
-  if component.isAvailable("internet") then term.write("OK\n") else term.write("NONE\n") end
-  term.write('Redstone.................')
-  if component.isAvailable("redstone") then term.write("OK\n") else term.write("NONE\n") end
-  term.write('Graphics Card............')
-  if component.isAvailable("gpu") then term.write("OK\n\n") else term.write("NONE\n\n") end
-  os.sleep(2)
+  for address, componentType in component.list() do
+    term.write(componentType .. ' attached at ' .. address)
+    if component.getPrimary(componentType) == address then
+      term.write(' as PRIMARY\n')
+    else term.write('\n') end
+    os.sleep(0.125)
+  end
+  os.sleep(1.5)
 end
 
 print("Starting ".._OSNAME.."...\n")
@@ -1440,10 +1438,10 @@ event_code, component_code, text_code, fs_code, terminal_code, keyboard_code = n
 filesystem.drive.scan()
 
 ntkrnl = {} --set up environment for os
+dofile("drivers.sys") --load driver config
 driver = {} --set up driver environments
-lang = {} --set up language environment
 
-selftest() --execute POST
+powerOnRoutine() --execute POST & other thingimagics
 
 local function interrupt(data)
   --print("INTERRUPT!")

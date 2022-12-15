@@ -18,7 +18,7 @@ end
 local w = tonumber(args[1])
 local h = tonumber(args[2])
 if not w or not h then
-  printErr("invalid width or height")
+  printErr("Invalid width or height")
 end
 
 local result, reason = gpu.setResolution(w, h)

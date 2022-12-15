@@ -1,4 +1,6 @@
-local init; ntos = true
+local init
+ntos = true
+
 do
   local component_invoke = component.invoke
   local function boot_invoke(address, method, ...)
