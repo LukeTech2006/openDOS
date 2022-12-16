@@ -230,6 +230,7 @@ local function runline(line)
 	if command == "exit" then history = {} return "exit" end
 	if command == "cls" then term.clear(); term.gpu().setForeground(0xFFFFFF); term.gpu().setBackground(0x000000) return true end
 	if command == "ver" then print(_OSVERSION) return true end
+	if command == "whoami" then print('NT-AUTHORITY/SYSTEM') return true end
 	if command == "mem" then memtest() return true end
 	if command == "dir" then if parts[2] then dir(fixPath(parts[2])) else dir() end return true end
 	if command == "cd" then if parts[2] then changeDir(fixPath(parts[2])) end return true end
@@ -249,7 +250,7 @@ local function runline(line)
 	if command == "rename" then return twoFileCommandHelper(moveFile, parts) end
 	if command == "ren" then return twoFileCommandHelper(moveFile, parts) end
 	if command == "move" then return twoFileCommandHelper(moveFile, parts) end
-  if command == "mkdir" then return filesystem.makeDirectory(fixPath(dirPointer..parts[2])) end
+  	if command == "mkdir" then return filesystem.makeDirectory(fixPath(dirPointer..parts[2])) end
 	if command == "edit" then return runprog("C:/opennt/edit.lua", parts) end
 	if command == "shutdown" then return runprog("C:/opennt/shutdown.lua", parts) end
 	if command == "cmds" then printPaged([[
@@ -257,6 +258,7 @@ Internal Commands:
 exit ----- Exit the command interpreter.
 cls ------ Clears the screen.
 ver ------ Outputs version information.
+whoami---- Outputs your current user.
 mem ------ Outputs memory information.
 dir ------ Lists the files on the current disk or a path.
 cd ------- Changes the current directory. 

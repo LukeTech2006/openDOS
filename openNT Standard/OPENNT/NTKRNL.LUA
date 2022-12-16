@@ -1404,7 +1404,7 @@ if term.isAvailable() then
   term.clear()
 end
 
-local function powerOnRoutine() --internal self test (sorta POST), will be reworked later on to be a full boot sequence in the american megatrends style
+local function powerUpRoutine() --internal self test (sorta POST), will be reworked later on to be a full boot sequence in the american megatrends style
 
   --calculate memory/high memory
   if math.floor(computer.totalMemory() / 1024 + 0.5) < 1025 then
@@ -1413,22 +1413,37 @@ local function powerOnRoutine() --internal self test (sorta POST), will be rewor
     ntkrnl.mem = 1024; ntkrnl.himem = math.floor(computer.totalMemory() / 1024 + 0.5) - 1024
   end
   
-  --display 'POST'-Style listing
+  --display 'POST'-Style component listing
   term.setCursorBlink(true); term.clear()
-  print('openNT startup diagnostic - (C)2022 Lukas Kretschmar\n\n')
-  term.write('Testing Memory...........'); os.sleep(0.125)
+  print('+-------------------------------------------------------+\n| openNT startup diagnostic - (C) 2022 Lukas Kretschmar |\n+-------------------------------------------------------+\n\n')
+  term.write('Testing Memory.............'); os.sleep(0.125)
   term.write('OK (' .. tostring(ntkrnl.mem) .. 'KiB)\n'); os.sleep(0.25)
-  term.write('Testing Extended Memory..'); os.sleep(0.125)
+  term.write('Testing Extended Memory....'); os.sleep(0.125)
   term.write('OK (' .. tostring(ntkrnl.himem) .. 'KiB)\n\n'); os.sleep(1)
   print('Components available:')
   for address, componentType in component.list() do
     term.write(componentType .. ' attached at ' .. address)
-    if component.getPrimary(componentType) == address then
-      term.write(' as PRIMARY\n')
-    else term.write('\n') end
+    if component.getPrimary(componentType) == address then term.write(' as PRIMARY\n') else term.write('\n') end
     os.sleep(0.125)
   end
   os.sleep(1.5)
+
+  --detect unmanaged file systems
+  component.gpu.setForeground(0xFFFF00)
+  if component.isAvailable('drive') then
+    term.write('\nFound unmanaged volume(s) at:\n')
+    for address, componentType in component.list('drive') do term.write('-> ' .. address .. ' (' .. component.invoke(address, 'getLabel') .. ')\n') end
+    term.write('\nopenNT cannot handle unmanaged filesystems at the moment. These Volume(s) will be ignored.\n')
+  end
+  os.sleep(1)
+
+	component.gpu.setForeground(0x00FF00)
+  term.write('\nPreparing System')
+  for i = 0, 10, 1 do
+    term.write('.')
+    os.sleep(0.2)
+  end
+  component.gpu.setForeground(0xFFFFFF)
 end
 
 print("Starting ".._OSNAME.."...\n")
@@ -1441,7 +1456,7 @@ ntkrnl = {} --set up environment for os
 dofile("drivers.sys") --load driver config
 driver = {} --set up driver environments
 
-powerOnRoutine() --execute POST & other thingimagics
+powerUpRoutine() --execute POST & other thingimagics
 
 local function interrupt(data)
   --print("INTERRUPT!")
@@ -1542,13 +1557,10 @@ local function shellrun(...)
 	return true
 end
 
-ntkrnl.freeMem = computer.freeMemory()
-
 --start command and keep it running.
 local fallback_drive = fs.drive.getcurrent()
 if filesystem.exists("autoexec.bat") then shellrun("opennt/command.lua", "-c", "autoexec.bat") else shellrun("opennt/command.lua") end
 while true do
-ntkrnl.freeMem = computer.freeMemory()
 if not ntkrnl.cmdBat then print() end
 fs.drive.setcurrent(fallback_drive)
 local new = false;
