@@ -1432,7 +1432,15 @@ local function powerUpRoutine() --internal self test (sorta POST), will be rewor
   component.gpu.setForeground(0xFFFF00)
   if component.isAvailable('drive') then
     term.write('\nFound unmanaged volume(s) at:\n')
-    for address, componentType in component.list('drive') do term.write('-> ' .. address .. ' (' .. component.invoke(address, 'getLabel') .. ')\n') end
+    --for address, componentType in component.list('drive') do term.write('-> ' .. address .. ' (' .. component.invoke(address, 'getLabel') or 'No Label' .. ')\n') end
+    for address, componentType in component.list('drive') do
+      local label = component.invoke(address, 'getLabel')
+      if label == nil then
+        term.write('-> ' .. address .. '\n')
+      else
+        term.write('-> ' .. address .. ' (' .. component.invoke(address, 'getLabel') .. ')\n')
+      end
+    end
     term.write('\nopenNT cannot handle unmanaged filesystems at the moment. These Volume(s) will be ignored.\n')
   end
   os.sleep(1)
@@ -1444,6 +1452,7 @@ local function powerUpRoutine() --internal self test (sorta POST), will be rewor
     os.sleep(0.2)
   end
   component.gpu.setForeground(0xFFFFFF)
+  term.write('\n')
 end
 
 print("Starting ".._OSNAME.."...\n")

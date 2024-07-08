@@ -1,17 +1,29 @@
 --provide support for legacy bios, might be reworked to automatically flash the custom BIOS to the legacy EEPROM
 isLegacyBIOS = true
 
-local function loadfile(name)
-  local handle, reason = component.invoke(computer.getBootAddress(), "open", name)
-  if not handle then error(reason) end
-  local buffer = ""
-  repeat
-    local data, reason = component.invoke(computer.getBootAddress(), "read", handle, math.huge)
-    if not data and reason then error(reason) end
-    buffer = buffer .. (data or "")
-  until not data
-  component.invoke(computer.getBootAddress(), "close", handle)
-  -- Tail call!
-  return load(buffer, "=" .. name, 'bt', _G)
+do
+  local addr, invoke = computer.getBootAddress(), component.invoke
+  local function loadfile(file)
+    local handle = assert(invoke(addr, "open", file))
+    local buffer = ""
+    repeat
+      local data = invoke(addr, "read", handle, math.maxinteger or math.huge)
+      buffer = buffer .. (data or "")
+    until not data
+    invoke(addr, "close", handle)
+    return load(buffer, "=" .. file, "bt", _G)
+  end
+  loadfile("/OPENNT/NTKRNL.LUA")(loadfile)
 end
-return loadfile("OPENNT/NTKRNL.LUA")
+
+while true do
+  local result, reason = xpcall(require("shell").getShell(), function(msg)
+    return tostring(msg).."\n"..debug.traceback()
+  end)
+  if not result then
+    io.stderr:write((reason ~= nil and tostring(reason) or "unknown error") .. "\n")
+    io.write("Press any key to continue.\n")
+    os.sleep(0.5)
+    require("event").pull("key")
+  end
+end
