@@ -1,0 +1,31 @@
+if not ntkrnl then error("This program can only run in DOS Mode!", 0) end --are we in openNT?
+
+local args = {...}
+local gpu = term.gpu()
+
+local ow, oh = gpu.getViewport()
+
+if #args == 0 then
+  print(ow .. " " .. oh)
+  return
+end
+
+if #args ~= 2 then --in case of an error, give the user a hint
+  print("Usage: resolution [<width> <height>]")
+  return
+end
+
+local w = tonumber(args[1])
+local h = tonumber(args[2])
+if not w or not h then
+  printErr("Invalid width or height")
+end
+
+local result, reason = gpu.setResolution(w, h)
+if not result then
+  if reason then -- otherwise we didn't change anything
+    printErr(reason)
+  end
+  return 1
+end
+if w < ow or h < oh then term.clear() end
