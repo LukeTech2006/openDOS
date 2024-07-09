@@ -229,7 +229,7 @@ local function runline(line)
 	--internal commands
 	if command == "exit" then history = {} return "exit" end
 	if command == "cls" then term.clear(); term.gpu().setForeground(0xFFFFFF); term.gpu().setBackground(0x000000) return true end
-	if command == "ver" then print(_OSVERSION) return true end
+	if command == "ver" then print(_OSVERSION .. '\n' .. _OSCREDIT) return true end
 	if command == "whoami" then print('NT-AUTHORITY/SYSTEM') return true end
 	if command == "mem" then memtest() return true end
 	if command == "dir" then if parts[2] then dir(fixPath(parts[2])) else dir() end return true end
