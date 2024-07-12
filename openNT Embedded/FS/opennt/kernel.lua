@@ -128,11 +128,13 @@ local function selftest()
   print('CPU Architecture: '..computer.getArchitecture()..'\nMemory installed: '..kernel.mem_inst..' KiB')
 
   print('\nComponents attached:')
+  os.sleep(0.5)
   local maxName = 0
   for _, name in pairs(component.list()) do if #name > maxName then maxName = #name end end
-  for address, name in pairs(component.list()) do print(text.padRight(name, maxName).." -> "..address) end
+  for address, name in pairs(component.list()) do print(text.padRight(name, maxName).." -> "..address); os.sleep(0) end
   print()
   
+  os.sleep(0.5)
   term.setCursorBlink(true)
 end
 
