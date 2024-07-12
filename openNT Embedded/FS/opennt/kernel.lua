@@ -88,7 +88,6 @@ function printPaged(...)
   end
 end
 
---load programs
 function loadfile(file, mode, env)
   if mode == nil then mode = 'r' end
   if env == nil then env = _G end
@@ -130,7 +129,7 @@ local function selftest()
 
   print('\nComponents attached:')
   local maxName = 0
-  for _, name in pairs(component.list()) do if string.len(name) > maxName then maxName = string.len(name) end end
+  for _, name in pairs(component.list()) do if #name > maxName then maxName = #name end end
   for address, name in pairs(component.list()) do print(text.padRight(name, maxName).." -> "..address) end
   print()
   
