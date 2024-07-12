@@ -18,7 +18,7 @@ do
     if gpu and screen then boot_invoke(gpu, "bind", screen) end
   end
   local function tryLoadFrom(address)
-    local handle, reason = boot_invoke(address, "open", "/NTKRNL.LUA")
+    local handle, reason = boot_invoke(address, "open", "/opennt/kernel.lua")
     if not handle then return nil, reason end
     local buffer = ""
     repeat
