@@ -1462,7 +1462,7 @@ event_code, component_code, text_code, fs_code, terminal_code, keyboard_code = n
 filesystem.drive.scan()
 
 ntkrnl = {} --set up environment for os
-dofile("drivers.sys") --load driver config
+dofile("DRIVERS.LUA") --load driver config
 driver = {} --set up driver environments
 
 powerUpRoutine() --execute POST & other thingimagics
