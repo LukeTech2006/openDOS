@@ -2,7 +2,7 @@ driver.example = {
     ["version"]             = "0.0.0",
     ["vendor"]              = "openNT",
     ["description"]         = "Test driver for developement purposes.",
-    ["wrap_function"]       = "component.proxy(component.list("modem")())",
-    ["event"]               = "modem_message"
+    ["wrap_function"]       = 'component.proxy(component.list("modem")())',
+    ["event"]               = "modem_message",
     ["driver_status"]       = 0, "OK"
 }

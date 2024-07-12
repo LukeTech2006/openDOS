@@ -134,7 +134,6 @@ local function selftest()
   print()
   
   term.setCursorBlink(true)
-  os.sleep(2)
 end
 
 local function interrupt(data)
@@ -247,6 +246,7 @@ filesystem = dofile('/opennt/filesystem.lua')
 fs = filesystem
 keyboard = dofile('/opennt/keyboard.lua')
 term = dofile('/opennt/term.lua')
+sfs = dofile('/opennt/sfs.lua')
 
 --set os vars
 kernel.freeMem = computer.freeMemory() --compatibility

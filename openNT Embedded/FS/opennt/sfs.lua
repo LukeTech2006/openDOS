@@ -1,6 +1,8 @@
 --sfs lib
 --This is actually custom functionality, aiming to evolve into a real file system later
 
+local sfs = {}
+
 function sfs.writeSession(proxy, session, compression)
 
     --set up drive proxy
@@ -22,7 +24,7 @@ function sfs.writeSession(proxy, session, compression)
 
         --write session header
         local preamble = 'SFS1.0'
-        for i = 1, #preamble do unmanaged_drive.writeByte(i, string.byte(preamble[i]))
+        for i = 1, #preamble do unmanaged_drive.writeByte(i, string.byte(preamble[i])) end
 
         --write session data
         local offset_pointer = 7
