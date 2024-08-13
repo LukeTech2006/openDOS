@@ -126,15 +126,13 @@ local function selftest()
 
   kernel.mem_inst = math.floor(computer.totalMemory() / 1024 + 0.5)
   print('CPU Architecture: '..computer.getArchitecture()..'\nMemory installed: '..kernel.mem_inst..' KiB')
-  os.sleep(0.5)
-  
+
   print('\nComponents attached:')
   local maxName = 0
   for _, name in pairs(component.list()) do if #name > maxName then maxName = #name end end
   for address, name in pairs(component.list()) do print(text.padRight(name, maxName).." -> "..address) end
   print()
   
-  os.sleep(0.5)
   term.setCursorBlink(true)
 end
 
@@ -237,17 +235,24 @@ local function shellrun(...)
 	return true
 end
 
+function runFileComp(drive_proxy, filepath)
+  local file_handle = drive_proxy.open(filepath, "r")
+  local run_func = kernelDecompress(drive_proxy.address, file_handle)
+  return load(run_func)()
+end
+
 --set up temporary fs handler
 filesystem = component.proxy(computer.getBootAddress())
 
 --set up libs
-event = dofile('/dos/event.lua')
-component = dofile('/dos/component.lua')
-text = dofile('/dos/text.lua')
-filesystem = dofile('/dos/filesystem.lua')
-keyboard = dofile('/dos/keyboard.lua')
-term = dofile('/dos/term.lua')
-sfs = dofile('/dos/sfs.lua')
+local boot_fs = component.proxy(computer.getBootAddress())
+event = runFileComp(boot_fs, 'dos/event.clf')
+component = runFileComp(boot_fs, 'dos/component.clf')
+text = runFileComp(boot_fs, 'dos/text.clf')
+filesystem = runFileComp(boot_fs, 'dos/filesystem.clf')
+keyboard = runFileComp(boot_fs, 'dos/keyboard.clf')
+term = runFileComp(boot_fs, 'dos/term.clf')
+sfs = runFileComp(boot_fs, 'dos/sfs.clf')
 fs = filesystem
 
 --set os vars
@@ -277,17 +282,17 @@ if term.isAvailable() then
 end
 
 --execute POST
-print("Starting ".._OSNAME.."...\n")
+print("Decompressing kernel...\n\nHello from ".._OSVERSION.." kernel!\n")
 selftest()
 
 --rescan fs
 filesystem.drive.scan() 
 
---start embed code and keep it running.
+--start shell
 local fallback_drive = fs.drive.getcurrent()
 
 while true do
-  kernel.freeMem = computer.freeMemory() --compatibility
   fs.drive.setcurrent(fallback_drive)
-  if not shellrun("dos/shell.lua") then term.pause() end
+  shell_file_handle = component.proxy(computer.getBootAddress()).open("dos/shell.clf", "r")
+  if not load(kernelDecompress(computer.getBootAddress(), shell_file_handle))() then term.pause() end
 end
