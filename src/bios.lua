@@ -21,6 +21,7 @@ do
 
   local function tryLoadFrom(address)
     local handle, reason = boot_invoke(address, "open", "/dos/kernel.lua")
+    --local handle, reason = boot_invoke(address, "open", "/init.lua")
     if not handle then return nil, reason end
     local buffer = ""
     repeat
