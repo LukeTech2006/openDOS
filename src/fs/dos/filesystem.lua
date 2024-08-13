@@ -87,7 +87,7 @@ function fs.drive.list()
     return iter
 end
 
-fs.drive._current = "C" --as the boot drive is A:
+fs.drive._current = "C" --as the boot drive is C:
 
 function fs.drive.setcurrent(letter)
     letter = letter:upper()

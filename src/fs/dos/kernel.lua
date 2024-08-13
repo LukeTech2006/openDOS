@@ -1,7 +1,7 @@
-_G._OSNAME = "openNT Embed"
-_G._OSVER = "E.0.1"
+_G._OSNAME = "openDOS"
+_G._OSVER = "A.0.1"
 _G._OSVERSION = _OSNAME .. " " .. _OSVER
-_G._OSCREDIT = "A NT-Emulator OS, based off of miniOS classic by Skye.\nminiOS code is under BSD 2-clause licence."
+_G._OSCREDIT = "A Disc Operating System, based off of miniOS classic by Skye.\nminiOS code is under BSD 2-clause licence."
 kernel = {}
 
 
@@ -126,12 +126,12 @@ local function selftest()
 
   kernel.mem_inst = math.floor(computer.totalMemory() / 1024 + 0.5)
   print('CPU Architecture: '..computer.getArchitecture()..'\nMemory installed: '..kernel.mem_inst..' KiB')
-
-  print('\nComponents attached:')
   os.sleep(0.5)
+  
+  print('\nComponents attached:')
   local maxName = 0
   for _, name in pairs(component.list()) do if #name > maxName then maxName = #name end end
-  for address, name in pairs(component.list()) do print(text.padRight(name, maxName).." -> "..address); os.sleep(0) end
+  for address, name in pairs(component.list()) do print(text.padRight(name, maxName).." -> "..address) end
   print()
   
   os.sleep(0.5)
@@ -241,14 +241,14 @@ end
 filesystem = component.proxy(computer.getBootAddress())
 
 --set up libs
-event = dofile('/opennt/event.lua')
-component = dofile('/opennt/component.lua')
-text = dofile('/opennt/text.lua')
-filesystem = dofile('/opennt/filesystem.lua')
+event = dofile('/dos/event.lua')
+component = dofile('/dos/component.lua')
+text = dofile('/dos/text.lua')
+filesystem = dofile('/dos/filesystem.lua')
+keyboard = dofile('/dos/keyboard.lua')
+term = dofile('/dos/term.lua')
+sfs = dofile('/dos/sfs.lua')
 fs = filesystem
-keyboard = dofile('/opennt/keyboard.lua')
-term = dofile('/opennt/term.lua')
-sfs = dofile('/opennt/sfs.lua')
 
 --set os vars
 kernel.freeMem = computer.freeMemory() --compatibility
@@ -289,5 +289,5 @@ local fallback_drive = fs.drive.getcurrent()
 while true do
   kernel.freeMem = computer.freeMemory() --compatibility
   fs.drive.setcurrent(fallback_drive)
-  if not shellrun("opennt/shell.lua") then term.pause() end
+  if not shellrun("dos/shell.lua") then term.pause() end
 end

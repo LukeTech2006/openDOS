@@ -1,2 +1,5 @@
 Ocelot/
 /*.log
+*.pyc
+__pycache__/
+dist/
