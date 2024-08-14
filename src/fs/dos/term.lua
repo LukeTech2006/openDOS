@@ -22,7 +22,15 @@ local function toggleBlink()
     cursorBlink.state = not cursorBlink.state
     if cursorBlink.state then
         cursorBlink.alt = component.gpu.get(cursorX, cursorY)
-        component.gpu.set(cursorX, cursorY, "▁")
+        local oldFg = component.gpu.getForeground()
+        local oldBg = component.gpu.getBackground()
+
+        component.gpu.setForeground(0x000000)
+        component.gpu.setBackground(0xFFFFFF)
+        component.gpu.set(cursorX, cursorY, cursorBlink.alt)
+
+        component.gpu.setForeground(oldFg)
+        component.gpu.setBackground(oldBg)
     else
         component.gpu.set(cursorX, cursorY, cursorBlink.alt)
     end

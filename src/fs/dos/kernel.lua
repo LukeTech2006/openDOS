@@ -1,5 +1,5 @@
 _G._OSNAME = "openDOS"
-_G._OSVER = "A.0.1"
+_G._OSVER = "A.0.5"
 _G._OSVERSION = _OSNAME .. " " .. _OSVER
 _G._OSCREDIT = "A Disc Operating System, based off of miniOS classic by Skye.\nminiOS code is under BSD 2-clause licence."
 kernel = {}
@@ -126,6 +126,7 @@ local function selftest()
 
   kernel.mem_inst = math.floor(computer.totalMemory() / 1024 + 0.5)
   print('CPU Architecture: '..computer.getArchitecture()..'\nMemory installed: '..kernel.mem_inst..' KiB')
+  os.sleep(0.5)
 
   print('\nComponents attached:')
   local maxName = 0
@@ -133,6 +134,7 @@ local function selftest()
   for address, name in pairs(component.list()) do print(text.padRight(name, maxName).." -> "..address) end
   print()
   
+  os.sleep(1)
   term.setCursorBlink(true)
 end
 
@@ -238,11 +240,8 @@ end
 function runFileComp(drive_proxy, filepath)
   local file_handle = drive_proxy.open(filepath, "r")
   local run_func = kernelDecompress(drive_proxy.address, file_handle)
-  return load(run_func)()
+  return load(run_func, "="..filepath)()
 end
-
---set up temporary fs handler
-filesystem = component.proxy(computer.getBootAddress())
 
 --set up libs
 local boot_fs = component.proxy(computer.getBootAddress())
@@ -289,10 +288,11 @@ selftest()
 filesystem.drive.scan() 
 
 --start shell
-local fallback_drive = fs.drive.getcurrent()
+local fallback_drive = filesystem.drive.getcurrent()
+kernel.base_shell = true
 
 while true do
-  fs.drive.setcurrent(fallback_drive)
+  filesystem.drive.setcurrent(fallback_drive)
   shell_file_handle = component.proxy(computer.getBootAddress()).open("dos/shell.clf", "r")
-  if not load(kernelDecompress(computer.getBootAddress(), shell_file_handle))() then term.pause() end
+  if not load(kernelDecompress(computer.getBootAddress(), shell_file_handle), "=dos/shell.clf")() then term.pause() end
 end

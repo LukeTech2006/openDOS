@@ -17,6 +17,6 @@ end
 
 boot_term.set(1, 1, "Decompressing kernel...")
 local kernelFile = boot_fs.open("dos/kernel.clf", "r")
-local kernel_func = load(kernelDecompress(computer.getBootAddress(), kernelFile))
+local kernel_func = load(kernelDecompress(computer.getBootAddress(), kernelFile), "=dos/kernel.clf")
 
 return kernel_func()
