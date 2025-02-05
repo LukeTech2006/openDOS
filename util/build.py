@@ -42,7 +42,7 @@ def main():
     srcFiles = os.listdir(srcPath)
     print("\nCompressing files...")
     for fileName in srcFiles:
-        print(f"{srcPath + fileName} -> {distPath + fileName.replace("lua", "clf")}")
+        print(f"{srcPath + fileName} -> {distPath + fileName.replace('lua', 'clf')}")
         if not fileName.endswith(".lua"): continue
         with open(srcPath + fileName, 'rb') as file: newFile = file.read()
         distFile = open(distPath + fileName.replace("lua", "clf"), 'wb')

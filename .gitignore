@@ -3,3 +3,5 @@ Ocelot/
 *.pyc
 __pycache__/
 dist/
+.venv/
+.idea/
